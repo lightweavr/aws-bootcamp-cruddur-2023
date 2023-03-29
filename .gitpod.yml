@@ -4,17 +4,17 @@ vscode:
     - 42Crunch.vscode-openapi
 
 tasks:
-  - name: install aws-cli
-    env:
-      AWS_CLI_AUTO_PROMPT: on-partial
+  - env:
+      dir: /workspace
     init: |
-      dir=/workspace
       mkdir -p $dir/aws-cli
       mkdir -p $dir/bin
       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
       tempdir=$(mktemp -d)
       unzip /tmp/awscliv2.zip -d $tempdir/
       rm -f /tmp/awscliv2.zip
-      $tempdir/aws/install -i /workspace/aws-cli -b /workspace/bin
+      $tempdir/aws/install -i /workspace/aws-cli -b /workspace/bin --update
+    command: |
+      complete -C '/workspace/bin/aws_completer' aws
       export PATH=/workspace/bin:$PATH
-      cd $GITPOD_REPO_ROOT
+      clear
