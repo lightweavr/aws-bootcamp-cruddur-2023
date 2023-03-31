@@ -1,4 +1,4 @@
-FROM python:3.10-slim-buster
+FROM python:3.11-alpine
 
 WORKDIR /backend-flask
 
@@ -10,5 +10,4 @@ COPY . .
 ENV FLASK_DEBUG=1
 ENV FRONTEND_URL="*" BACKEND_URL="*"
 
-EXPOSE ${PORT}
 CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--port=4567"]

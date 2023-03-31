@@ -5,6 +5,7 @@ services:
       FRONTEND_URL: "https://3000-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
       BACKEND_URL: "https://4567-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
     build: ./backend-flask
+    container_name: backend
     ports:
       - "4567:4567"
     volumes:
@@ -13,6 +14,7 @@ services:
     environment:
       REACT_APP_BACKEND_URL: "https://4567-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
     build: ./frontend-react-js
+    container_name: frontend
     ports:
       - "3000:3000"
     volumes:
@@ -23,26 +25,23 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
+    container_name: db
     ports:
       - '5432:5432'
     volumes: 
-      - db:/var/lib/postgresql/data
-  dynamodb-local:
+      - /workspace/docker/psqldb:/var/lib/postgresql/data
+  dynamodb:
     # https://stackoverflow.com/questions/67533058/persist-local-dynamodb-data-in-volumes-lack-permission-unable-to-open-databa
     # We needed to add user:root to get this working.
     user: root
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
     image: "amazon/dynamodb-local:latest"
-    container_name: dynamodb-local
+    container_name: dynamodb
     ports:
       - "8000:8000"
     volumes:
-      - "./docker/dynamodb:/home/dynamodblocal/data"
+      - "/workspace/docker/dynamodb:/home/dynamodblocal/data"
     working_dir: /home/dynamodblocal
-
-volumes:
-  db:
-    driver: local
 
 # the name flag is a hack to change the default prepend folder
 # name when outputting the image names
