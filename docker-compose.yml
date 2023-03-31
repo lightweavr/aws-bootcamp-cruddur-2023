@@ -13,11 +13,11 @@ services:
       - db
       - dynamodb
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4567/api/activities/home", "-H", "Accept: application/json", "-H", "Content-Type: application/json"]
+      test: ["CMD", "wget", "-q", "-O/dev/null", "http://localhost:4567/api/activities/home", "--header", "Accept: application/json", "--header", "Content-Type: application/json"]
       interval: 1m30s
       timeout: 10s
       retries: 3
-      start_period: 45s
+      start_period: 15s
     volumes:
       - type: bind
         source: ./backend-flask
@@ -33,11 +33,11 @@ services:
     depends_on:
       - backend-flask
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "wget", "-q", "-O/dev/null", "http://localhost:3000"]
       interval: 1m30s
       timeout: 10s
       retries: 3
-      start_period: 45s
+      start_period: 15s
     volumes:
       - type: bind
         source: ./frontend-react-js/src
