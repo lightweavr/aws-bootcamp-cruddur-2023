@@ -1,7 +1,8 @@
 from flask import Flask
 from flask import request
 from flask_cors import CORS, cross_origin
-import os
+import logging, os
+from time import strftime
 
 from services.home_activities import *
 from services.notifications_activities import *
@@ -14,7 +15,7 @@ from services.messages import *
 from services.create_message import *
 from services.show_activity import *
 
-# HoneyComb ---------
+# HoneyComb
 from opentelemetry import trace
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
@@ -22,7 +23,20 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-# HoneyComb ---------
+# Xray
+from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
+
+# Cloudwatch
+import watchtower
+
+# Rollbar
+import rollbar
+import rollbar.contrib.flask
+from flask import got_request_exception
+
+app = Flask(__name__)
+
 # Initialize tracing and an exporter that can send data to Honeycomb
 provider = TracerProvider()
 processor = BatchSpanProcessor(OTLPSpanExporter())
@@ -31,9 +45,49 @@ provider.add_span_processor(processor)
 trace.set_tracer_provider(provider)
 tracer = trace.get_tracer(__name__)
 
-app = Flask(__name__)
 FlaskInstrumentor().instrument_app(app)
 RequestsInstrumentor().instrument()
+
+# Xray
+xray_url = os.getenv("AWS_XRAY_URL")
+xray_recorder.configure(service='backend-flask', dynamic_naming=xray_url)
+XRayMiddleware(app, xray_recorder)
+logging.getLogger('aws_xray_sdk').setLevel(logging.DEBUG)
+
+# Cloudwatch 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+cw_handler = watchtower.CloudWatchLogHandler(log_group='cruddur', log_stream_name='{machine_name}/{program_name}/{logger_name}')
+LOGGER.addHandler(cw_handler)
+LOGGER.info("cruddur backend running")
+
+@app.after_request
+def after_request(response):
+  # This only works when debug mode is off - https://stackoverflow.com/a/15004612
+  if response.status_code == 200:
+    return response
+  timestamp = strftime('[%Y-%b-%d %H:%M]')
+  LOGGER.error('%s %s %s %s %s %s', timestamp, request.remote_addr, request.method, request.scheme, request.full_path, response.status)
+  return response
+
+# Rollbar
+@app.before_first_request
+def init_rollbar():
+  rollbar.init(
+    access_token=os.getenv('ROLLBAR_ACCESS_TOKEN'),
+    environment='production',
+    # server root directory, makes tracebacks prettier
+    root=os.path.dirname(os.path.realpath(__file__)),
+    # flask already sets up logging
+    allow_logging_basic_config=False,
+  )
+  rollbar.report_message('Rollbar is configured correctly', 'info')
+  got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
+
+@app.route('/rollbar/test')
+def rollbar_test():
+    rollbar.report_message('Hello World!', 'warning')
+    return "Hello World!"
 
 frontend = os.getenv('FRONTEND_URL')
 backend = os.getenv('BACKEND_URL')
@@ -82,6 +136,7 @@ def data_create_message():
   return
 
 @app.route("/api/activities/home", methods=['GET'])
+@xray_recorder.capture('activities_home')
 def data_home():
   data = HomeActivities.run()
   return data, 200
@@ -92,6 +147,7 @@ def data_notifications():
   return data, 200
 
 @app.route("/api/activities/@<string:handle>", methods=['GET'])
+@xray_recorder.capture('activities_users')
 def data_handle(handle):
   model = UserActivities.run(handle)
   if model['errors'] is not None:
@@ -123,6 +179,7 @@ def data_activities():
   return
 
 @app.route("/api/activities/<string:activity_uuid>", methods=['GET'])
+@xray_recorder.capture('activities_show')
 def data_show_activity(activity_uuid):
   data = ShowActivity.run(activity_uuid=activity_uuid)
   return data, 200
