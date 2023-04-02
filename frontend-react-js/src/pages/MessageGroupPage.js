@@ -12,6 +12,7 @@ import { Auth } from 'aws-amplify'
 export default function MessageGroupPage() {
   const [messageGroups, setMessageGroups] = React.useState([])
   const [messages, setMessages] = React.useState([])
+  // eslint-disable-next-line no-unused-vars
   const [popped, setPopped] = React.useState([])
   const [user, setUser] = React.useState(null)
   const dataFetchedRef = React.useRef(false)
@@ -96,6 +97,7 @@ export default function MessageGroupPage() {
     checkAuth()
     loadMessageGroupsData()
     loadMessageGroupData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return (
     <article>

@@ -13,6 +13,7 @@ export default function TrendItem(props) {
   }
 
   return (
+    // eslint-disable-next-line jsx-a11y/anchor-is-valid
     <a className="trending" href="#">
       <span className="hashtag">#{props.hashtag}</span>
       <span className="count">#{commify(props.count)} cruds</span>

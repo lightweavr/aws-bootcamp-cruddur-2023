@@ -1,20 +1,23 @@
 {
     "env": {
         "browser": true,
-        "node": true,
-        "es6": true
+        "commonjs": true,
+        "es6": true,
+        "node": true
     },
     "parserOptions": {
         "ecmaVersion": 8,
-        "sourceType": "module",
-        "ecmaFeatures": {
-            "jsx": true,
-            "modules": true
-        }
+        "sourceType": "module"
     },
     "plugins": [
         "prettier",
-        "react"
+        "react",
+        "react-hooks",
+        "jsx-a11y",
+        "flowtype",
+        "import",
+        "testing-library",
+        "jest"
     ],
     "extends": [
         "prettier",

@@ -75,6 +75,7 @@ export default function UserFeedPage() {
 
     checkAuth()
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
