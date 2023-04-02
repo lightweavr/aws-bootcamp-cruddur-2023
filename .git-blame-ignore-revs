@@ -1,0 +1,5 @@
+# .git-blame-ignore-revs
+# Reformatted Python code with black
+b99e9d0bd4e5f1a8fdfe4d2435158fbc7626c94e
+# Reformatted JS code with prettier
+6ecedb09f870054b22ea4aa7b8c7cafa2683debf
