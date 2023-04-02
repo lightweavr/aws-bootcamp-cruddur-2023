@@ -27,6 +27,10 @@ tasks:
       sudo apt update
       sudo apt install -y postgresql-client-13 libpq-dev
       exit
+  - name: Setup db storage directories
+    command: |
+      mkdir -p /workspace/docker/dynamodb
+      mkdir -p /workspace/docker/psqldb
 
 ports:
   - name: frontend
