@@ -31,6 +31,7 @@ tasks:
     command: |
       mkdir -p /workspace/docker/dynamodb
       mkdir -p /workspace/docker/psqldb
+      exit
 
 ports:
   - name: frontend
@@ -39,10 +40,13 @@ ports:
     visibility: public
   - name: backend
     port: 4567
+    onOpen: ignore 
     visibility: public
   - name: pgsql
     port: 5432
+    onOpen: ignore 
     visibility: private
   - name: ddb
     port: 8000
+    onOpen: ignore 
     visibility: private

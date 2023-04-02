@@ -45,17 +45,22 @@ export default function HomeFeedPage() {
       bypassCache: false 
     })
     .then((user) => {
-      console.log('user',user);
+      // console.log('user', user);
       return Auth.currentAuthenticatedUser()
     }).then((cognito_user) => {
         setUser({
           display_name: cognito_user.attributes.name,
           handle: cognito_user.attributes.preferred_username
-          // This needs fetch and set the bearer token because it's only valid for 1 hour
-          // https://docs.amplify.aws/lib/auth/manageusers/q/platform/js/#retrieve-current-authenticated-user
         })
     })
     .catch((err) => console.log(err));
+    
+    // This needs fetch and set the bearer token because it's only valid for 1 hour
+    // https://docs.amplify.aws/lib/auth/manageusers/q/platform/js/#retrieve-current-authenticated-user
+    Auth.currentSession().then((cognito_session) => {
+      // console.log('refreshing JWT', cognito_session.getAccessToken().jwtToken)
+      localStorage.setItem("access_token", cognito_session.getAccessToken().jwtToken)
+    })
   };
 
   React.useEffect(()=>{
@@ -63,9 +68,9 @@ export default function HomeFeedPage() {
     if (dataFetchedRef.current) return;
     dataFetchedRef.current = true;
 
-    loadData();
     checkAuth();
-  }, [])
+    loadData();
+    }, [])
 
   return (
     <article>

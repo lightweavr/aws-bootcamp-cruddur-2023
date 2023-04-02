@@ -4,8 +4,7 @@ import React from "react";
 import DesktopNavigation  from '../components/DesktopNavigation';
 import MessageGroupFeed from '../components/MessageGroupFeed';
 
-// [TODO] Authenication
-import Cookies from 'js-cookie'
+import { Auth } from 'aws-amplify';
 
 export default function MessageGroupsPage() {
   const [messageGroups, setMessageGroups] = React.useState([]);
@@ -17,6 +16,9 @@ export default function MessageGroupsPage() {
     try {
       const backend_url = `${process.env.REACT_APP_BACKEND_URL}/api/message_groups`
       const res = await fetch(backend_url, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        },
         method: "GET"
       });
       let resJson = await res.json();
@@ -31,14 +33,29 @@ export default function MessageGroupsPage() {
   };  
 
   const checkAuth = async () => {
-    console.log('checkAuth')
-    // [TODO] Authenication
-    if (Cookies.get('user.logged_in')) {
-      setUser({
-        display_name: Cookies.get('user.name'),
-        handle: Cookies.get('user.username')
-      })
-    }
+    Auth.currentAuthenticatedUser({
+      // Optional, By default is false. 
+      // If set to true, this call will send a 
+      // request to Cognito to get the latest user data
+      bypassCache: false 
+    })
+    .then((user) => {
+      // console.log('user', user);
+      return Auth.currentAuthenticatedUser()
+    }).then((cognito_user) => {
+        setUser({
+          display_name: cognito_user.attributes.name,
+          handle: cognito_user.attributes.preferred_username
+        })
+    })
+    .catch((err) => console.log(err));
+    
+    // This needs fetch and set the bearer token because it's only valid for 1 hour
+    // https://docs.amplify.aws/lib/auth/manageusers/q/platform/js/#retrieve-current-authenticated-user
+    Auth.currentSession().then((cognito_session) => {
+      // console.log('refreshing JWT', cognito_session.getAccessToken().jwtToken)
+      localStorage.setItem("access_token", cognito_session.getAccessToken().jwtToken)
+    })
   };
 
   React.useEffect(()=>{
@@ -46,8 +63,8 @@ export default function MessageGroupsPage() {
     if (dataFetchedRef.current) return;
     dataFetchedRef.current = true;
 
-    loadData();
     checkAuth();
+    loadData();
   }, [])
   return (
     <article>
