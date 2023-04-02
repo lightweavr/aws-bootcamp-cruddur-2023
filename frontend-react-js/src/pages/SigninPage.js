@@ -74,7 +74,7 @@ export default function SigninPage() {
           </div>
         </form>
         <div className="dont-have-an-account">
-          <span>Don't have an account?</span>
+          <span>{"Don't have an account?"}</span>
           <Link to="/signup">Sign up!</Link>
         </div>
       </div>

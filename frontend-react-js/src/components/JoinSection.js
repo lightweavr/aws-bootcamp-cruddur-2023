@@ -7,8 +7,8 @@ export default function JoinSection(props) {
       <div className="join-title">Join The Party!</div>
       <div className="join-content">
         <p>Have something you want to say?</p>
-        <p>Don't think about it, just crud it!</p>
-        <p>Regret it? No worries, We'll forget it...</p>
+        <p>{"Don't think about it, just crud it!"}</p>
+        <p>{"Regret it? No worries, We'll forget it..."}</p>
         <Link to="/signup" className="action">
           Join Now!
         </Link>
