@@ -51,6 +51,8 @@ export default function HomeFeedPage() {
         setUser({
           display_name: cognito_user.attributes.name,
           handle: cognito_user.attributes.preferred_username
+          // This needs fetch and set the bearer token because it's only valid for 1 hour
+          // https://docs.amplify.aws/lib/auth/manageusers/q/platform/js/#retrieve-current-authenticated-user
         })
     })
     .catch((err) => console.log(err));
