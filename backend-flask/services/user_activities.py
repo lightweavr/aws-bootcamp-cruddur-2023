@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from aws_xray_sdk.core import xray_recorder
 class UserActivities:
-  def run(user_handle):
+  def run(user_handle, cognito_user_id=None):
     # Uncomment to force a 500 Internal Server Error
     # raise RuntimeError("testing the log")
     model = {
@@ -26,5 +26,7 @@ class UserActivities:
     model['data'] = results
     # Alternatively, just use xray_recorder directly
     subsegment.put_annotation("results_len", len(results))
+    # set_user only works on the segment, not subsegement
+    xray_recorder.current_segment().set_user(cognito_user_id)
     xray_recorder.end_subsegment()
     return model 

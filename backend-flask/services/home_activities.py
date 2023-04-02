@@ -61,8 +61,6 @@ class HomeActivities:
           'replies': []
         }
         results.insert(0,extra_crud)
-        # This is instrumented by honeycomb, not xray, set user doesn't work
-        # span.set_user(cognito_user_id)
 
       span.set_attribute("app.result_length", len(results))
       return results

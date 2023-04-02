@@ -148,14 +148,10 @@ def data_home():
   try:
     claims = cognito_jwt_token.verify(access_token)
     # authenicatied request
-    app.logger.debug("authenicated")
-    app.logger.debug(claims)
-    app.logger.debug(claims['username'])
     data = HomeActivities.run(cognito_user_id=claims['username'])
   except TokenVerifyError as e:
     # unauthenicatied request
-    app.logger.debug(e)
-    app.logger.debug("unauthenicated")
+    app.logger.debug(f"unauthenicated: e")
     data = HomeActivities.run()
   return data, 200
 
@@ -167,7 +163,15 @@ def data_notifications():
 @app.route("/api/activities/@<string:handle>", methods=['GET'])
 @xray_recorder.capture('activities_users')
 def data_handle(handle):
-  model = UserActivities.run(handle)
+  access_token = extract_access_token(request.headers)
+  try:
+    claims = cognito_jwt_token.verify(access_token)
+    # authenicatied request
+    model = UserActivities.run(handle, cognito_user_id=claims['username'])
+  except TokenVerifyError as e:
+    # unauthenicatied request
+    app.logger.debug(f"unauthenicated: e")
+    model = UserActivities.run(handle)
   if model['errors'] is not None:
     return model['errors'], 422
   else:
