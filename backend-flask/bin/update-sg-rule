@@ -5,7 +5,8 @@ if [ -z "${DB_SG_ID}" ] || [ -z "${DB_SG_RULE_ID}" ] ; then
     exit 1
 fi
 IP=$(curl -s ifconfig.me)
+TIMESTAMP=$(TZ='America/Vancouver' date -Iminutes)
 
 aws --query "Return" ec2 modify-security-group-rules \
     --group-id $DB_SG_ID \
-    --security-group-rules "SecurityGroupRuleId=$DB_SG_RULE_ID,SecurityGroupRule={IpProtocol=tcp,FromPort=5432,ToPort=5432,CidrIpv4=$IP/32}"
+    --security-group-rules "Description=Gitpod/${TIMESTAMP},SecurityGroupRuleId=$DB_SG_RULE_ID,SecurityGroupRule={IpProtocol=tcp,FromPort=5432,ToPort=5432,CidrIpv4=$IP/32}"
