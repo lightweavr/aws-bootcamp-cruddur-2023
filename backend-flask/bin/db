@@ -34,6 +34,14 @@ function sessions() {
         from pg_stat_activity;"
 }
 
+# copied from https://stackoverflow.com/a/5109190
+function drop_sessions() {
+    psql "$1" -c "SELECT pg_terminate_backend(pid) \
+        FROM pg_stat_activity \
+        WHERE pid <> pg_backend_pid() \
+        AND datname = 'cruddur';"
+}
+
 if { [ -z "${PROD_CONNECTION_URL}" ] && [ "$1" = "-p" ]; } || { [ -z "${CONNECTION_URL}" ] && [ "$1" != "-p" ]; }; then
     echo Expecting either PROD_CONNECTION_URL to be set with -p, or CONNECTION_URL. Don\'t know what URL to use, exiting
     exit 1
@@ -48,7 +56,7 @@ else
   URL=$CONNECTION_URL
 fi
 
-NO_DB_CONNECTION_URL=$(sed 's/\/cruddur//g' <<<"$CONNECTION_URL")
+NO_DB_CONNECTION_URL=$(sed 's/\/cruddur//g' <<<"$URL")
 
 CYAN='\033[1;36m'
 NO_COLOR='\033[0m'
@@ -60,11 +68,13 @@ printf "Running ${CYAN}%s${NO_COLOR}\n" "${PARAM}"
 # switch case to select function
 case $PARAM in
     "connect"|"c") connect "$URL" ;;
+    "cdb") connect "$NO_DB_CONNECTION_URL" ;;
     "create") create "$NO_DB_CONNECTION_URL" ;;
     "drop") drop "$NO_DB_CONNECTION_URL" ;;
-    "schema") schema "$URL" ;;
-    "seed") seed "$URL" ;;
-    "sessions") sessions "$URL" ;;
+    "schema") schema "$NO_DB_CONNECTION_URL" ;;
+    "seed") seed "$NO_DB_CONNECTION_URL" ;;
+    "sessions") sessions "$NO_DB_CONNECTION_URL" ;;
+    "drop-sessions" ) drop_sessions "$NO_DB_CONNECTION_URL" ;;
 
     "setup"|"init")
         drop "$NO_DB_CONNECTION_URL"
