@@ -1,4 +1,3 @@
-
 vscode:
   extensions:
     - 42Crunch.vscode-openapi
@@ -18,6 +17,7 @@ tasks:
       $tempdir/aws/install -i /workspace/aws-cli -b /workspace/bin --update
     command: |
       complete -C '/workspace/bin/aws_completer' aws
+      /workspace/aws-bootcamp-cruddur-2023/backend-flask/bin/update-sg-rule
       export PATH=/workspace/bin:$PATH
       clear
   - name: install-postgres-client
@@ -25,7 +25,7 @@ tasks:
       curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
       echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" |sudo tee  /etc/apt/sources.list.d/pgdg.list
       sudo apt update
-      sudo apt install -y postgresql-client-13 libpq-dev
+      sudo apt install -y postgresql-client-15 libpq-dev
       exit
   - name: Setup db storage directories
     command: |
@@ -40,13 +40,13 @@ ports:
     visibility: public
   - name: backend
     port: 4567
-    onOpen: ignore 
+    onOpen: ignore
     visibility: public
   - name: pgsql
     port: 5432
-    onOpen: ignore 
+    onOpen: ignore
     visibility: private
   - name: ddb
     port: 8000
-    onOpen: ignore 
+    onOpen: ignore
     visibility: private
