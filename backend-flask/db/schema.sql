@@ -23,10 +23,10 @@ CREATE TABLE public.activities (
   created_at timestamp default current_timestamp NOT NULL
 );
 DROP FUNCTION IF EXISTS func_updated_at();
-CREATE FUNCTION func_updated_at() RETURNS TRIGGER AS $ $ BEGIN NEW.updated_at = now();
+CREATE FUNCTION func_updated_at() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = now();
 RETURN NEW;
 END;
-$ $ language 'plpgsql';
+$$ language 'plpgsql';
 DROP TRIGGER IF EXISTS trig_users_updated_at ON users;
 DROP TRIGGER IF EXISTS trig_activities_updated_at ON activities;
 CREATE TRIGGER trig_users_updated_at BEFORE
