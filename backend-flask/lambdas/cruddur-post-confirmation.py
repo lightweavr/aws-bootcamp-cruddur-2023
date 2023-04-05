@@ -8,12 +8,7 @@ def lambda_handler(event, context):
     print("userAttributes")
     print(user)
     try:
-        conn = psycopg2.connect(
-            host=(os.getenv("PG_HOSTNAME")),
-            database=(os.getenv("PG_DATABASE")),
-            user=(os.getenv("PG_USERNAME")),
-            password=(os.getenv("PG_SECRET")),
-        )
+        conn = psycopg2.connect(os.getenv("CONNECTION_URL"))
         cur = conn.cursor()
         cur.execute(
             "INSERT INTO public.users (display_name, email, handle, cognito_user_id) VALUES(%s, %s, %s, %s)",
@@ -28,4 +23,5 @@ def lambda_handler(event, context):
             cur.close()
             conn.close()
             print("Database connection closed.")
+    # Cognito seems to expect that you return the event? I can't find a doc on this
     return event

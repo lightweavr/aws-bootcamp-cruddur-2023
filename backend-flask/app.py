@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import request
 from flask_cors import CORS, cross_origin
-import logging, os
+import json, logging, os
 from time import strftime
 
 from services.home_activities import *
@@ -171,15 +171,14 @@ def data_create_message():
 @app.route("/api/activities/home", methods=["GET"])
 @xray_recorder.capture("activities_home")
 def data_home():
+    cognito_user_id=None
     access_token = extract_access_token(request.headers)
     try:
         claims = cognito_jwt_token.verify(access_token)
-        # authenicatied request
-        data = HomeActivities.run(cognito_user_id=claims["username"])
+        cognito_user_id=claims["username"]
     except TokenVerifyError as e:
-        # unauthenicatied request
-        app.logger.debug(f"unauthenicated: e")
-        data = HomeActivities.run()
+        pass
+    data = HomeActivities.run(cognito_user_id=cognito_user_id)
     return data, 200
 
 
@@ -192,15 +191,15 @@ def data_notifications():
 @app.route("/api/activities/@<string:handle>", methods=["GET"])
 @xray_recorder.capture("activities_users")
 def data_handle(handle):
+    cognito_user_id=None
     access_token = extract_access_token(request.headers)
     try:
         claims = cognito_jwt_token.verify(access_token)
-        # authenicatied request
-        model = UserActivities.run(handle, cognito_user_id=claims["username"])
+        cognito_user_id=claims["username"]        
     except TokenVerifyError as e:
-        # unauthenicatied request
-        app.logger.debug(f"unauthenicated: e")
-        model = UserActivities.run(handle)
+        pass
+    
+    model = UserActivities.run(handle, cognito_user_id=cognito_user_id)
     if model["errors"] is not None:
         return model["errors"], 422
     else:
@@ -221,10 +220,19 @@ def data_search():
 @app.route("/api/activities", methods=["POST", "OPTIONS"])
 @cross_origin()
 def data_activities():
-    user_handle = "andrewbrown"
-    message = request.json["message"]
-    ttl = request.json["ttl"]
-    model = CreateActivity.run(message, user_handle, ttl)
+    cognito_user_id=None
+    access_token = extract_access_token(request.headers)
+    model = {}
+    try:
+        claims = cognito_jwt_token.verify(access_token)
+        cognito_user_id=claims["username"] 
+        message = request.json["message"]
+        ttl = request.json["ttl"]
+        model = CreateActivity.run(message, cognito_user_id, ttl)      
+    except TokenVerifyError as e:
+        app.logger.error(f"Request not authed: {access_token}, {e}")
+        model["errors"] = ["Not Authenticated"]
+   
     if model["errors"] is not None:
         return model["errors"], 422
     else:
