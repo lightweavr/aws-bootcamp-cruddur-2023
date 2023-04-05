@@ -16,7 +16,7 @@ def lambda_handler(event, context):
         )
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO public.users (display_name, email, handle, cognito_user_id) VALUES(%s, %s, %s)",
+            "INSERT INTO public.users (display_name, email, handle, cognito_user_id) VALUES(%s, %s, %s, %s)",
             (user["name"], user["email"], user["preferred_username"], user["sub"]),
         )
         conn.commit()
