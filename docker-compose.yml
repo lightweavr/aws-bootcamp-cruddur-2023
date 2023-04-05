@@ -23,7 +23,6 @@ services:
     ports:
       - 4567:4567
     depends_on:
-      - db
       - dynamodb
     healthcheck:
       test:
@@ -78,19 +77,19 @@ services:
         source: ./frontend-react-js/src
         target: /frontend-react-js/src
         read_only: true
-  db:
-    image: postgres:13-alpine
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    container_name: db
-    ports:
-      - 5432:5432
-    volumes:
-      - type: bind
-        source: /workspace/docker/psqldb
-        target: /var/lib/postgresql/data
+  # db:
+  #   image: postgres:13-alpine
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=password
+  #   container_name: db
+  #   ports:
+  #     - 5432:5432
+  #   volumes:
+  #     - type: bind
+  #       source: /workspace/docker/psqldb
+  #       target: /var/lib/postgresql/data
   dynamodb:
     # https://stackoverflow.com/questions/67533058/persist-local-dynamodb-data-in-volumes-lack-permission-unable-to-open-databa
     # We needed to add user:root to get this working.
