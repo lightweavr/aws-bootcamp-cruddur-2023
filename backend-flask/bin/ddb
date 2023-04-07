@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-import boto3
 import argparse
+import json
 import os
 import sys
-import json
 import uuid
+from datetime import datetime, timedelta, timezone
+
+import boto3
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 parent_path = os.path.abspath(os.path.join(current_path, ".."))
 sys.path.append(parent_path)
-from lib.db import db
 
 
 def delete_table(client, table_name: str):
@@ -19,17 +20,17 @@ def delete_table(client, table_name: str):
 
 
 def list_tables(client):
-    response = client.list_tables(ExclusiveStartTableName="string", Limit=123)
+    response = client.list_tables()
     print(response["TableNames"])
 
 
 def scan(client, table_name):
-    table = ddb.Table(table_name)
-    response = table.scan()
+    response = client.scan(TableName=table_name, ReturnConsumedCapacity="TOTAL")
 
-    items = response["Items"]
+    items = response.pop("Items")
     for item in items:
         print(item)
+    print(response)
 
 
 def create(client, table_name):
@@ -66,6 +67,9 @@ def create(client, table_name):
 
 
 def get_user_uuids(first_handle, second_handle):
+    # Only reach out to the DB when requested
+    from lib.db import db
+
     # Ideally this should be variable amount of handles
     sql = """
         SELECT
@@ -143,7 +147,7 @@ def create_message(
 def seed_ddb(client):
     message_group_uuid = "5ae290ed-55d1-47a0-bc6d-fe2bc2700399"
     now = datetime.now(timezone.utc).astimezone()
-    users = get_user_uuids("handle_1", "handle_2")
+    users = get_user_uuids("andrewbrown", "aj")
 
     create_message_group(
         client=client,
@@ -167,7 +171,7 @@ def seed_ddb(client):
         message="this is a filler message",
     )
 
-    with open("ddb-seed.txt.txt", "r") as f:
+    with open("ddb-seed.txt", "r") as f:
         lines = f.readlines()
 
     for i, line in enumerate(lines):
@@ -199,8 +203,8 @@ def seed_ddb(client):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CLI to interact with DynamoDB")
-    parser.add_argument("command", choices=["delete", "list", "scan", "create"])
-    parser.add_argument("table_name", default="cruddur-messages")
+    parser.add_argument("command", choices=["delete", "list", "scan", "create", "seed"])
+    parser.add_argument("table_name", default="cruddur-messages", nargs="?")
     parser.add_argument("-p", "--prod", action="store_true")
     args = parser.parse_args()
 
