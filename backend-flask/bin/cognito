@@ -18,7 +18,7 @@ def update_users_with_cognito_user_id(handle, sub):
     WHERE
     users.handle = %(handle)s;
     """
-    db.query_commit(sql, {"handle": handle, "sub": sub})
+    db.query_single(sql, {"handle": handle, "sub": sub})
 
 
 def get_cognito_user_ids():
