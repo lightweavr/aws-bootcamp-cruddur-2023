@@ -38,7 +38,7 @@ export default function ActivityForm(props) {
       let data = await res.json()
       if (res.status === 200) {
         console.log('data:', data)
-        if (data.message_group_uuid) {
+        if (data.message_group_uuid && !data.created_at) {
           console.log('redirect to message group')
           window.location.href = `/messages/${data.message_group_uuid}`
         } else {

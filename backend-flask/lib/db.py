@@ -44,8 +44,8 @@ class Db:
   def query_object_json(self, sql, params={}) -> str:
     wrapped_sql = self.query_wrap_object(sql)
 
-    if app:
-      app.logger.debug(f"Running SQL query {wrapped_sql}")
+    # if app:
+    #   app.logger.debug(f"Running SQL query {wrapped_sql}")
     with self.pool.connection() as conn:
       with conn.cursor() as cur:
         cur.execute(wrapped_sql, params)

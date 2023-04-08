@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from lib.ddb import Ddb
 from lib.db import db
+from flask import current_app as app
 
 class Messages:
     def run(message_group_uuid, cognito_user_id):
@@ -8,11 +9,10 @@ class Messages:
 
         my_user_uuid = db.query_get_uuid_from_cognito_id(cognito_user_id)
 
-        print(f"UUID: {my_user_uuid}")
+        app.logger.debug(f"get messages UUID: {my_user_uuid}")
 
         ddb = Ddb.client()
         data = Ddb.list_messages(ddb, message_group_uuid)
-        print("list_messages")
-        print(data)
+        app.logger.debug(f"list_messages: {len(data)}")
         model["data"] = data
         return model

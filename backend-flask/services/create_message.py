@@ -32,51 +32,50 @@ class CreateMessage:
         elif len(message) > 1024:
             model["errors"] = ["message_exceed_max_chars"]
 
+        # Return early if there are errors
         if model["errors"]:
             # return what we provided
+            # ???
             model["data"] = {
-                "display_name": "Andrew Brown",
-                "handle": user_sender_handle,
                 "message": message,
             }
+            return model
+
+        if user_receiver_handle == None:
+            rev_handle = ""
         else:
-            if user_receiver_handle == None:
-                rev_handle = ""
-            else:
-                rev_handle = user_receiver_handle
-            users = db.query_create_message_users(cognito_user_id, rev_handle)
-            app.logger.debug("USERS =-=-=-=-==")
-            app.logger.debug(users)
+            rev_handle = user_receiver_handle
+        users = db.query_create_message_users(cognito_user_id, rev_handle)
+        app.logger.debug("USERS =-=-=-=-==")
+        app.logger.debug(users)
 
-            my_user = next((item for item in users if item["kind"] == "sender"), None)
-            other_user = next((item for item in users if item["kind"] == "recv"), None)
+        my_user = next((item for item in users if item["kind"] == "sender"), None)
+        other_user = next((item for item in users if item["kind"] == "recv"), None)
 
-            app.logger.debug("USERS=[my-user]==")
-            app.logger.debug(my_user)
-            app.logger.debug("USERS=[other-user]==")
-            app.logger.debug(other_user)
+        app.logger.debug(f"USERS=[my-user]: {my_user}")
+        app.logger.debug(f"USERS=[other-user]: {other_user}")
 
-            ddb = Ddb.client()
+        ddb = Ddb.client()
 
-            if mode == "update":
-                data = Ddb.create_message(
-                    client=ddb,
-                    message_group_uuid=message_group_uuid,
-                    message=message,
-                    my_user_uuid=my_user["uuid"],
-                    my_user_display_name=my_user["display_name"],
-                    my_user_handle=my_user["handle"],
-                )
-            elif mode == "create":
-                data = Ddb.create_message_group(
-                    client=ddb,
-                    message=message,
-                    my_user_uuid=my_user["uuid"],
-                    my_user_display_name=my_user["display_name"],
-                    my_user_handle=my_user["handle"],
-                    other_user_uuid=other_user["uuid"],
-                    other_user_display_name=other_user["display_name"],
-                    other_user_handle=other_user["handle"],
-                )
-            model["data"] = data
+        if mode == "update":
+            data = Ddb.create_message(
+                client=ddb,
+                message_group_uuid=message_group_uuid,
+                message=message,
+                my_user_uuid=my_user["uuid"],
+                my_user_display_name=my_user["display_name"],
+                my_user_handle=my_user["handle"],
+            )
+        elif mode == "create":
+            data = Ddb.create_message_group(
+                client=ddb,
+                message=message,
+                my_user_uuid=my_user["uuid"],
+                my_user_display_name=my_user["display_name"],
+                my_user_handle=my_user["handle"],
+                other_user_uuid=other_user["uuid"],
+                other_user_display_name=other_user["display_name"],
+                other_user_handle=other_user["handle"],
+            )
+        model["data"] = data
         return model

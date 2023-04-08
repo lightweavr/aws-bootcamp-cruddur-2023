@@ -176,6 +176,8 @@ def data_create_message():
         # unauthenicatied request
         app.logger.debug(e)
         return {}, 401
+
+    # This is sent by frontend-react-js/src/components/MessageForm.js
     if message_group_uuid == None:
     # Create for the first time
         model = CreateMessage.run(
