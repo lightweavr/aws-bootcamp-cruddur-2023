@@ -76,10 +76,40 @@ class Db:
     params = {"cognito_user_id": cognito_user_id}
     return self.query_single(sql, params)
 
+  def query_get_uuid_from_cognito_id(self, cognito_user_id) -> str:
+    sql = "select uuid from users where cognito_user_id = %(cognito_user_id)s"
+    params = {"cognito_user_id": cognito_user_id}
+    return self.query_single(sql, params)
+
   def query_get_uuid_from_handle(self, handle) -> str:
     sql = "select uuid from users where handle = %(handle)s"
     params = {"handle": handle}
     return self.query_single(sql, params)
+
+  def query_create_message_users(self, cognito_user_id, user_receiver_handle):
+    sql = """
+      SELECT
+        users.uuid,
+        users.display_name,
+        users.handle,
+        CASE users.cognito_user_id = %(cognito_user_id)s
+        WHEN TRUE THEN
+          'sender'
+        WHEN FALSE THEN
+          'recv'
+        ELSE
+          'other'
+        END as kind
+      FROM public.users
+      WHERE
+        users.cognito_user_id = %(cognito_user_id)s
+        OR
+        users.handle = %(user_receiver_handle)s
+    """
+    return db.query_array_json(sql, {
+        'cognito_user_id': cognito_user_id,
+        'user_receiver_handle': user_receiver_handle
+      })
 
   @staticmethod
   def query_wrap_object(template):
