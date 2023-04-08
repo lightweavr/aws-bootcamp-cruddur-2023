@@ -6,8 +6,7 @@ import DesktopNavigation from '../components/DesktopNavigation'
 import MessageGroupFeed from '../components/MessageGroupFeed'
 import MessagesFeed from '../components/MessageFeed'
 import MessagesForm from '../components/MessageForm'
-
-import { Auth } from 'aws-amplify'
+import checkAuth from '../lib/CheckAuth';
 
 export default function MessageGroupPage() {
   const [messageGroups, setMessageGroups] = React.useState([])
@@ -40,8 +39,7 @@ export default function MessageGroupPage() {
 
   const loadMessageGroupData = async () => {
     try {
-      const handle = `@${params.handle}`
-      const backend_url = `${process.env.REACT_APP_BACKEND_URL}/api/messages/${handle}`
+      const backend_url = `${process.env.REACT_APP_BACKEND_URL}/api/messages/${params.message_group_uuid}`
       const res = await fetch(backend_url, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -59,42 +57,12 @@ export default function MessageGroupPage() {
     }
   }
 
-  const checkAuth = async () => {
-    Auth.currentAuthenticatedUser({
-      // Optional, By default is false.
-      // If set to true, this call will send a
-      // request to Cognito to get the latest user data
-      bypassCache: false,
-    })
-      .then((user) => {
-        // console.log('user', user);
-        return Auth.currentAuthenticatedUser()
-      })
-      .then((cognito_user) => {
-        setUser({
-          display_name: cognito_user.attributes.name,
-          handle: cognito_user.attributes.preferred_username,
-        })
-      })
-      .catch((err) => console.log(err))
-
-    // This needs fetch and set the bearer token because it's only valid for 1 hour
-    // https://docs.amplify.aws/lib/auth/manageusers/q/platform/js/#retrieve-current-authenticated-user
-    Auth.currentSession().then((cognito_session) => {
-      // console.log('refreshing JWT', cognito_session.getAccessToken().jwtToken)
-      localStorage.setItem(
-        'access_token',
-        cognito_session.getAccessToken().jwtToken
-      )
-    })
-  }
-
   React.useEffect(() => {
     //prevents double call
     if (dataFetchedRef.current) return
     dataFetchedRef.current = true
 
-    checkAuth()
+    checkAuth(setUser)
     loadMessageGroupsData()
     loadMessageGroupData()
     // eslint-disable-next-line react-hooks/exhaustive-deps

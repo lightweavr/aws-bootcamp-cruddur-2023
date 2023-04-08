@@ -133,8 +133,6 @@ def data_message_groups():
         cognito_user_id=claims["sub"]
     except TokenVerifyError as e:
         return {}, 401
-    data = HomeActivities.run()
-    user_handle = "andrewbrown"
     model = MessageGroups.run(cognito_user_id=cognito_user_id)
     if model["errors"] is not None:
         return model["errors"], 422
