@@ -126,8 +126,16 @@ cors = CORS(
 
 @app.route("/api/message_groups", methods=["GET"])
 def data_message_groups():
+    cognito_user_id=None
+    access_token = extract_access_token(request.headers)
+    try:
+        claims = cognito_jwt_token.verify(access_token)
+        cognito_user_id=claims["sub"]
+    except TokenVerifyError as e:
+        return {}, 401
+    data = HomeActivities.run()
     user_handle = "andrewbrown"
-    model = MessageGroups.run(user_handle=user_handle)
+    model = MessageGroups.run(cognito_user_id=cognito_user_id)
     if model["errors"] is not None:
         return model["errors"], 422
     else:
@@ -195,10 +203,10 @@ def data_handle(handle):
     access_token = extract_access_token(request.headers)
     try:
         claims = cognito_jwt_token.verify(access_token)
-        cognito_user_id=claims["username"]        
+        cognito_user_id=claims["username"]
     except TokenVerifyError as e:
         pass
-    
+
     model = UserActivities.run(handle, cognito_user_id=cognito_user_id)
     if model["errors"] is not None:
         return model["errors"], 422
@@ -225,14 +233,14 @@ def data_activities():
     model = {}
     try:
         claims = cognito_jwt_token.verify(access_token)
-        cognito_user_id=claims["username"] 
+        cognito_user_id=claims["username"]
         message = request.json["message"]
         ttl = request.json["ttl"]
-        model = CreateActivity.run(message, cognito_user_id, ttl)      
+        model = CreateActivity.run(message, cognito_user_id, ttl)
     except TokenVerifyError as e:
         app.logger.error(f"Request not authed: {access_token}, {e}")
         model["errors"] = ["Not Authenticated"]
-   
+
     if model["errors"] is not None:
         return model["errors"], 422
     else:

@@ -18,7 +18,7 @@ def update_users_with_cognito_user_id(handle, sub):
     WHERE
     users.handle = %(handle)s;
     """
-    db.query_single(sql, {"handle": handle, "sub": sub})
+    db.query_single_noreturn(sql, {"handle": handle, "sub": sub})
 
 
 def get_cognito_user_ids():
@@ -50,9 +50,9 @@ def list_users():
 @click.command()
 def sync_users():
     users = get_cognito_user_ids()
-
+    print(f"Syncing {len(users)} record(s) from Cognito to Postgres")
     for handle, sub in users.items():
-        print("----", handle, sub)
+        print(f"---- Adding to db: {handle}: {sub}")
         update_users_with_cognito_user_id(handle=handle, sub=sub)
 
 cli.add_command(list_users, name="list")

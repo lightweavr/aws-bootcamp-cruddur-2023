@@ -18,7 +18,8 @@ tasks:
     command: |
       complete -C '/workspace/bin/aws_completer' aws
       /workspace/aws-bootcamp-cruddur-2023/backend-flask/bin/update-sg-rule
-      export PATH=/workspace/bin:$PATH
+      export PATH=/workspace/bin:/workspace/aws-bootcamp-cruddur-2023/bin:$PATH
+      pip install -r backend-flask/requirements.txt
       clear
   - name: install-postgres-client
     command: |

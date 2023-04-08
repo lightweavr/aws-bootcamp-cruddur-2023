@@ -80,6 +80,7 @@ case $PARAM in
         drop "$NO_DB_CONNECTION_URL"
         create "$NO_DB_CONNECTION_URL"
         schema "$URL"
-        seed "$URL" ;;
+        seed "$URL"
+        $(dirname $(realpath "${BASH_SOURCE[0]}"))/cognito sync ;;
     *) echo "Invalid parameter" ;;
 esac

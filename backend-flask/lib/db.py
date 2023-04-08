@@ -57,12 +57,19 @@ class Db:
 
   def query_single(self, sql, params: Sequence):
     if app:
-      app.logger.debug(f"Running SQL query {sql}")
+      app.logger.debug(f"Running SQL query {sql} with params {params}")
     with self.pool.connection() as conn:
       with conn.cursor() as cur:
         cur.execute(sql, params)
         result = cur.fetchone()
         return result[0]
+
+  def query_single_noreturn(self, sql, params: Sequence) -> None:
+    if app:
+      app.logger.debug(f"Running SQL query {sql}")
+    with self.pool.connection() as conn:
+      with conn.cursor() as cur:
+        cur.execute(sql, params)
 
   def query_get_handle_from_cognito_id(self, cognito_user_id) -> str:
     sql = "select handle from users where cognito_user_id = %(cognito_user_id)s"
