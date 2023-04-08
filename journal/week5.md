@@ -72,6 +72,8 @@ Made a few changes:
 * Enabled batching within the trigger to reduce the number of invocations (and billing), main usecase is probably going to be skipping over the 4 change notifications
   * Each run was _just_ over 1ms, so I got billed for 2ms, the new batch runs are ~1.5ms. But it's gone from 4 invocations of 2ms each to a single invocation of 2 ms, a clear win
 
+![Lambda Logs Screenshot](assets/week-5-lambda-log-screenshot.png)
+
 ```plain
 Before batch_writer:
 Duration: 510.89 ms Billed Duration: 511 ms Memory Size: 128 MB Max Memory Used: 66 MB Init Duration: 339.97 ms
