@@ -139,6 +139,7 @@ class Ddb:
         # Looking up GRP#{their id} and my user_uuid would see if _they_ have a conversation
         # THIS DOESN'T SUPPORT PAGINATION RIGHT NOW
         existing_group = False
+        message_group_uuid = None
         query_params = {
             "TableName": table_name,
             "KeyConditionExpression": "pk = :pk",
