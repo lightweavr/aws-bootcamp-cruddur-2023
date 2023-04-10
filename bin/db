@@ -13,13 +13,13 @@ function drop() {
 }
 
 function schema() {
-    schema_path="$(realpath $(dirname $(realpath "${BASH_SOURCE[0]}"))/../db/schema.sql)"
+    schema_path="$(realpath $(dirname $(realpath "${BASH_SOURCE[0]}"))/../backend-flask/db/schema.sql)"
     echo Loading schema from "$schema_path"
     psql "$1" cruddur < "$schema_path"
 }
 
 function seed() {
-    seed_path="$(realpath $(dirname $(realpath "${BASH_SOURCE[0]}"))/../db/seed.sql)"
+    seed_path="$(realpath $(dirname $(realpath "${BASH_SOURCE[0]}"))/../backend-flask/db/seed.sql)"
     echo Loading seed data from "$seed_path"
     psql "$1" cruddur < "$seed_path"
 }
