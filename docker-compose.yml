@@ -32,7 +32,7 @@ services:
           "wget",
           "-q",
           "-O/dev/null",
-          "http://127.0.0.1:4567/api/activities/home",
+          "http://127.0.0.1:4567/api/health-check",
           "--header",
           "Accept: application/json",
           "--header",
