@@ -1,4 +1,4 @@
-FROM python:3.11-alpine
+FROM 017145807427.dkr.ecr.us-west-2.amazonaws.com/ecr-public/docker/library/python:3.11-alpine
 
 WORKDIR /backend-flask
 
