@@ -1,4 +1,4 @@
-FROM node:19-alpine
+FROM 017145807427.dkr.ecr.us-west-2.amazonaws.com/ecr-public/docker/library/node:19-alpine
 
 ENV PORT=3000
 
