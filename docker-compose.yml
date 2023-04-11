@@ -47,6 +47,8 @@ services:
         source: ./backend-flask
         target: /backend-flask
         read_only: true
+    networks:
+      - cruddur-net
   frontend-react-js:
     environment:
       REACT_APP_BACKEND_URL: https://4567-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}
@@ -78,6 +80,8 @@ services:
         source: ./frontend-react-js/src
         target: /frontend-react-js/src
         read_only: true
+    networks:
+      - cruddur-net
   # db:
   #   image: postgres:13-alpine
   #   restart: unless-stopped
@@ -91,6 +95,8 @@ services:
   #     - type: bind
   #       source: /workspace/docker/psqldb
   #       target: /var/lib/postgresql/data
+  #   networks:
+  #     - cruddur-net
   dynamodb:
     # https://stackoverflow.com/questions/67533058/persist-local-dynamodb-data-in-volumes-lack-permission-unable-to-open-databa
     # We needed to add user:root to get this working.
@@ -106,7 +112,10 @@ services:
         source: /workspace/docker/dynamodb
         target: /home/dynamodblocal/data
     working_dir: /home/dynamodblocal
+    networks:
+      - cruddur-net
   xray-daemon:
+    hostname: xray-daemon
     image: "amazon/aws-xray-daemon"
     environment:
       AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
@@ -116,9 +125,11 @@ services:
       - "xray -o -b xray-daemon:2000"
     ports:
       - 2000:2000/udp
+    networks:
+      - cruddur-net
 # the name flag is a hack to change the default prepend folder
 # name when outputting the image names
 networks:
-  internal-network:
+  cruddur-net:
     driver: bridge
-    name: cruddur
+    name: cruddur-net
