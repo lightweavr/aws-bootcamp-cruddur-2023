@@ -71,11 +71,11 @@
                 },
                 {
                     "name": "FRONTEND_URL",
-                    "value": "cpbc.lightweaver.ca"
+                    "value": "https://cpbc.lightweaver.ca"
                 },
                 {
                     "name": "BACKEND_URL",
-                    "value": "api.cpbc.lightweaver.ca"
+                    "value": "https://api.cpbc.lightweaver.ca"
                 }
             ],
             "secrets": [
