@@ -1,0 +1,43 @@
+{
+    "LoadBalancers": [
+        {
+            "LoadBalancerArn": "arn:aws:elasticloadbalancing:us-west-2:017145807427:loadbalancer/app/cruddur-alb/b38f0f49a86f9dd0",
+            "DNSName": "cruddur-alb-848904033.us-west-2.elb.amazonaws.com",
+            "CanonicalHostedZoneId": "Z1H1FL5HABSF5",
+            "CreatedTime": "2023-04-10T16:11:37.190000+00:00",
+            "LoadBalancerName": "cruddur-alb",
+            "Scheme": "internet-facing",
+            "VpcId": "vpc-a9b7c7ce",
+            "State": {
+                "Code": "active"
+            },
+            "Type": "application",
+            "AvailabilityZones": [
+                {
+                    "ZoneName": "us-west-2c",
+                    "SubnetId": "subnet-0295955a",
+                    "LoadBalancerAddresses": []
+                },
+                {
+                    "ZoneName": "us-west-2a",
+                    "SubnetId": "subnet-50860e37",
+                    "LoadBalancerAddresses": []
+                },
+                {
+                    "ZoneName": "us-west-2d",
+                    "SubnetId": "subnet-57e6a67f",
+                    "LoadBalancerAddresses": []
+                },
+                {
+                    "ZoneName": "us-west-2b",
+                    "SubnetId": "subnet-ebd476a2",
+                    "LoadBalancerAddresses": []
+                }
+            ],
+            "SecurityGroups": [
+                "sg-074c6e4028da01e71"
+            ],
+            "IpAddressType": "ipv4"
+        }
+    ]
+}
