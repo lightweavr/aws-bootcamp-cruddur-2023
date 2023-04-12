@@ -22,8 +22,6 @@ def backend():
         exit(1)
 
 def db():
-    #!/usr/bin/env python3
-
     connection_url = os.getenv("CONNECTION_URL")
 
     conn = None

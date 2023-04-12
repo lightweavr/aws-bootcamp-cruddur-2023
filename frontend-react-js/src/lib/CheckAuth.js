@@ -7,10 +7,6 @@ const checkAuth = async (setUser) => {
     // request to Cognito to get the latest user data
     bypassCache: false,
   })
-    .then((user) => {
-      // console.log('user', user);
-      return Auth.currentAuthenticatedUser()
-    })
     .then((cognito_user) => {
       setUser({
         display_name: cognito_user.attributes.name,
