@@ -93,8 +93,7 @@ class Ddb:
         my_user_display_name,
         my_user_handle,
     ):
-        now = datetime.now(timezone.utc).astimezone().isoformat()
-        created_at = now
+        created_at = datetime.now().isoformat()
         message_uuid = str(uuid.uuid4())
 
         record = {
