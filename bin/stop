@@ -1,3 +1,5 @@
 #!/bin/bash
-aws rds stop-db-instance --db-instance-identifier database-1 --output text --no-paginate
-aws ecs update-service --cluster cruddur --service backend-flask --desired-count 0 --output text --no-paginate
+echo DB:
+aws rds stop-db-instance --db-instance-identifier database-1 --output text --no-paginate --query DBInstance.DBInstanceStatus
+echo ECS:
+aws ecs update-service --cluster cruddur --service backend-flask --desired-count 0 --output text --no-paginate  --query 'service.{desiredCount:desiredCount,status:status}'
