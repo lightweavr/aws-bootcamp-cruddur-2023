@@ -1,0 +1,94 @@
+#!/bin/bash
+
+ABS_PATH=$(readlink -f "$0")
+BIN_PATH=$(dirname $ABS_PATH)
+PROJECT_PATH=$(dirname $BIN_PATH)
+BACKEND_FLASK_PATH="$PROJECT_PATH/backend-flask"
+FRONTEND_REACT_JS_PATH="$PROJECT_PATH/frontend-react-js"
+
+
+function connect() {
+    aws ecs execute-command --region $AWS_DEFAULT_REGION --cluster cruddur --task $(aws ecs list-tasks --cluster cruddur --service-name $1 |jq .taskArns[0] --raw-output) --container $1 --command "/bin/sh" --interactive
+}
+
+function build_prod() {
+    # Expects $1 to a name, $2 to be a path
+    docker build -f "$2/Dockerfile.prod" -t $1-prod "$2/."
+    # docker build -f "$BACKEND_FLASK_PATH/Dockerfile.prod" -t backend-flask-prod "$BACKEND_FLASK_PATH/."
+}
+
+function build() {
+    # Expects $1 to be a path instead of a name
+    docker build -f "$2/Dockerfile" -t $1 "$2/."
+}
+
+function tag() {
+    docker tag $1:latest 017145807427.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$1:latest
+}
+
+function push() {
+    docker push 017145807427.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$1:latest
+}
+
+function register() {
+    aws ecs register-task-definition --cli-input-json "file://$PROJECT_PATH/aws/task-definitions/$1.json"
+}
+
+function create() {
+    aws ecs create-service --cli-input-json "file://$PROJECT_PATH/aws/json/service-$1.json"
+}
+
+function deploy() {
+    LATEST_TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition $1 --query 'taskDefinition.taskDefinitionArn' --output text)
+    aws ecs update-service --cluster cruddur --service $1 --task-definition $LATEST_TASK_DEFINITION_ARN --force-new-deployment
+}
+
+function run() {
+    # port should be 3000 for frontend though
+    docker run --rm --env-file $PROJECT_PATH/$1.env --network cruddur-net --publish 4567:4567 -it $1
+}
+
+function login() {
+    aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin 017145807427.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+}
+
+
+ACTION=$1
+shift
+TARGET=$1
+shift
+
+# Need to translate backend/frontend to whichever respectively - backend-flask/frontend-react-js
+
+# Some things want a difference between prod and dev
+if [ "$1" = "-p" ]; then
+  TARGET=${TARGET}-prod
+  shift # drop the first parameter - "-p"
+else
+  URL=$CONNECTION_URL
+fi
+
+CYAN='\033[1;36m'
+NO_COLOR='\033[0m'
+
+printf "Running ${CYAN}%s${NO_COLOR} on %s\n" "${ACTION}" "${TARGET}"
+
+case $ACTION in
+    "connect"|"c") connect "$URL" ;;
+    "build") connect "$NO_DB_CONNECTION_URL" ;;
+    "push") create "$NO_DB_CONNECTION_URL" ;;
+    "register") drop "$NO_DB_CONNECTION_URL" ;;
+    "create") schema "$NO_DB_CONNECTION_URL" ;;
+
+    "push" )
+        tag $TARGET
+        push $TARGET
+
+    "setup"|"init")
+        drop "$NO_DB_CONNECTION_URL"
+        create "$NO_DB_CONNECTION_URL"
+        schema "$URL"
+        seed "$URL"
+        $(dirname $(realpath "${BASH_SOURCE[0]}"))/cognito sync ;;
+    *) echo "Invalid parameter" ;;
+esac
