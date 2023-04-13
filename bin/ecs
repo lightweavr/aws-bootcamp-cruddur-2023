@@ -1,28 +1,29 @@
 #!/bin/bash
 
 ABS_PATH=$(readlink -f "$0")
-BIN_PATH=$(dirname $ABS_PATH)
-PROJECT_PATH=$(dirname $BIN_PATH)
-BACKEND_FLASK_PATH="$PROJECT_PATH/backend-flask"
+BIN_PATH=$(dirname "$ABS_PATH")
+PROJECT_PATH=$(dirname "$BIN_PATH")
 FRONTEND_REACT_JS_PATH="$PROJECT_PATH/frontend-react-js"
+ACCOUNT_ID="017145807427"
 
 
 function connect() {
-    aws ecs execute-command --region $AWS_DEFAULT_REGION --cluster cruddur --task $(aws ecs list-tasks --cluster cruddur --service-name $1 |jq .taskArns[0] --raw-output) --container $1 --command "/bin/sh" --interactive
+    aws ecs execute-command --region "$AWS_DEFAULT_REGION" --cluster cruddur --task "$(aws ecs list-tasks --cluster cruddur --service-name "$1" |jq .taskArns[0] --raw-output)" --container "$1" --command "/bin/sh" --interactive
 }
 
 function build_prod() {
-    # Expects $1 to a name, $2 to be a path
-    docker build -f "$2/Dockerfile.prod" -t $1-prod "$2/."
-    # docker build -f "$BACKEND_FLASK_PATH/Dockerfile.prod" -t backend-flask-prod "$BACKEND_FLASK_PATH/."
+    DIRPATH="${PROJECT_PATH}"/"$1"
+    docker build -f "${DIRPATH}/Dockerfile.prod" -t "$1"-prod "${DIRPATH}/."
+
 }
 
 function build() {
     # Expects $1 to be a path instead of a name
-    docker build -f "$2/Dockerfile" -t $1 "$2/."
+    docker build -f "$2/Dockerfile" -t "$1" "$2/."
 }
 
 function build_react() {
+    # No args
     docker build \
     --build-arg REACT_APP_BACKEND_URL="https://api.cpbc.lightweaver.ca" \
     --build-arg REACT_APP_AWS_PROJECT_REGION="$AWS_DEFAULT_REGION" \
@@ -30,26 +31,27 @@ function build_react() {
     --build-arg REACT_APP_AWS_USER_POOLS_ID="us-west-2_jC4wpfY1b" \
     --build-arg REACT_APP_CLIENT_ID="4mq8n71ja47g2t9cd616t3p136" \
     -t frontend-react-js-prod \
-    -f $FRONTEND_REACT_JS_PATH/Dockerfile.prod \
-    $FRONTEND_REACT_JS_PATH/ \
+    -f "$FRONTEND_REACT_JS_PATH"/Dockerfile.prod \
+    "$FRONTEND_REACT_JS_PATH"/ \
     --target=build
 
     CONTAINER=$(docker create frontend-react-js-prod:latest)
     TEMPDEST=$(mktemp -d)
-    docker cp ${CONTAINER}:/frontend-react-js/build/ ${TEMPDEST}/
+    docker cp "${CONTAINER}":/frontend-react-js/build/ "${TEMPDEST}"/
 
-    aws s3 sync ${TEMPDEST} s3://cpbc-lightweaver-ca --delete --exclude='*.map'
-    rm -rf ${TEMPDEST}
-    docker rm ${CONTAINER}
+    aws s3 sync "${TEMPDEST}" s3://cpbc-lightweaver-ca --delete --exclude='*.map'
+    rm -rf "${TEMPDEST}"
+    docker rm "${CONTAINER}"
     docker rmi frontend-react-js-prod
 }
 
 function tag() {
-    docker tag $1:latest 017145807427.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$1:latest
+    # $1 is the container name
+    docker tag "$1":latest ${ACCOUNT_ID}.dkr.ecr."${AWS_DEFAULT_REGION}".amazonaws.com/"$1":latest
 }
 
 function push() {
-    docker push 017145807427.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$1:latest
+    docker push ${ACCOUNT_ID}.dkr.ecr."${AWS_DEFAULT_REGION}".amazonaws.com/"$1":latest
 }
 
 function register() {
@@ -61,17 +63,21 @@ function create() {
 }
 
 function deploy() {
-    LATEST_TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition $1 --query 'taskDefinition.taskDefinitionArn' --output text)
-    aws ecs update-service --cluster cruddur --service $1 --task-definition $LATEST_TASK_DEFINITION_ARN --force-new-deployment
+    LATEST_TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition "$1" --query 'taskDefinition.taskDefinitionArn' --output text)
+    aws ecs update-service --cluster cruddur --service "$1" --task-definition "$LATEST_TASK_DEFINITION_ARN" --force-new-deployment
 }
 
 function run() {
     # port should be 3000 for frontend though
-    docker run --rm --env-file $PROJECT_PATH/$1.env --network cruddur-net --publish 4567:4567 -it $1
+    PORT="4567"
+    if [ "$1" = "frontend-react-js" ]; then
+        PORT="3000"
+    fi
+    docker run --rm --env-file "$PROJECT_PATH"/"$1".env --network cruddur-net --publish "${PORT}":"${PORT}" -it "$1"
 }
 
 function login() {
-    aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin 017145807427.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+    aws ecr get-login-password --region "${AWS_DEFAULT_REGION}" | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr."${AWS_DEFAULT_REGION}".amazonaws.com
 }
 
 
@@ -81,13 +87,13 @@ TARGET=$1
 shift
 
 # Need to translate backend/frontend to whichever respectively - backend-flask/frontend-react-js
-
-# Some things want a difference between prod and dev
-if [ "$1" = "-p" ]; then
-  TARGET=${TARGET}-prod
-  shift # drop the first parameter - "-p"
-else
-  URL=$CONNECTION_URL
+if [ "$TARGET" = "frontend" ]; then
+    TARGET="frontend-react-js"
+elif [ "$TARGET" = "backend" ]; then
+    TARGET="backend-flask"
+else 
+    echo "Invalid choice for target: $TARGET (choose frontend/backend)"
+    exit 1
 fi
 
 CYAN='\033[1;36m'
@@ -96,21 +102,26 @@ NO_COLOR='\033[0m'
 printf "Running ${CYAN}%s${NO_COLOR} on %s\n" "${ACTION}" "${TARGET}"
 
 case $ACTION in
-    "connect"|"c") connect "$URL" ;;
-    "build") connect "$NO_DB_CONNECTION_URL" ;;
-    "push") create "$NO_DB_CONNECTION_URL" ;;
-    "register") drop "$NO_DB_CONNECTION_URL" ;;
-    "create") schema "$NO_DB_CONNECTION_URL" ;;
+    "connect"|"c") connect "${TARGET}" ;;
+    "build-prod") build_prod "${TARGET}" ;;
+    "build") build "${TARGET}" ;;
+    "sync-react") build_react ;;
+    "tag") tag "${TARGET}" ;;
+    "push" ) push "${TARGET}" ;;
+    "deploy" ) deploy "${TARGET}" ;;
+    "run" ) run "${TARGET}" ;;
+    "login" ) login ;;
+    
+    "tdeploy" )
+        tag "${TARGET}"
+        push "${TARGET}" 
+        deploy "${TARGET}" ;;
 
-    "push" )
-        tag $TARGET
-        push $TARGET
-
-    "setup"|"init")
-        drop "$NO_DB_CONNECTION_URL"
-        create "$NO_DB_CONNECTION_URL"
-        schema "$URL"
-        seed "$URL"
-        $(dirname $(realpath "${BASH_SOURCE[0]}"))/cognito sync ;;
+    "setup"|"init"|"update")
+        build_prod "${TARGET}"
+        tag "${TARGET}"
+        push "${TARGET}"
+        deploy "${TARGET}" ;;
+        
     *) echo "Invalid parameter" ;;
 esac
