@@ -2,9 +2,29 @@
 
 require 'erb'
 
+load_paths = {
+  "backend": "backend-flask.env.erb",
+  "frontend": "frontend-react-js.env.erb",
+  "frontend-prod": "frontend-react-js.prod.env.erb"
+}
+
+
+if ARGV.length == 0
+  puts "This needs a path type to load (Supported types: #{load_paths.keys})"
+  exit 1
+end
+
+param = ARGV[0].to_sym
+if not load_paths.has_key?(param)
+  puts "#{param} is not supported. (Supported types: #{load_paths.keys})"
+  exit 1
+end
+
+
 # template = File.read 'erb/backend-flask.env.erb'
-template = File.read 'erb/frontend-react-js.prod.env.erb'
+template = File.read "erb/#{load_paths[param]}"
 content = ERB.new(template).result(binding)
+
 # filename = "backend-flask.env"
-filename = "frontend-react-js.prod.env"
+filename = File.basename(load_paths[param], ".erb")
 File.write(filename, content)
