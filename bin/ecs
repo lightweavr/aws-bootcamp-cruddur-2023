@@ -91,7 +91,10 @@ if [ "$TARGET" = "frontend" ]; then
     TARGET="frontend-react-js"
 elif [ "$TARGET" = "backend" ]; then
     TARGET="backend-flask"
-else 
+elif [ "$ACTION" = login ]; then
+    # pass, don't do anything
+    true
+else
     echo "Invalid choice for target: $TARGET (choose frontend/backend)"
     exit 1
 fi
@@ -111,10 +114,10 @@ case $ACTION in
     "deploy" ) deploy "${TARGET}" ;;
     "run" ) run "${TARGET}" ;;
     "login" ) login ;;
-    
+
     "tdeploy" )
         tag "${TARGET}"
-        push "${TARGET}" 
+        push "${TARGET}"
         deploy "${TARGET}" ;;
 
     "setup"|"init"|"update")
@@ -122,6 +125,6 @@ case $ACTION in
         tag "${TARGET}"
         push "${TARGET}"
         deploy "${TARGET}" ;;
-        
+
     *) echo "Invalid parameter" ;;
 esac
