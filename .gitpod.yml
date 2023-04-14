@@ -33,6 +33,12 @@ tasks:
       mkdir -p /workspace/docker/dynamodb
       mkdir -p /workspace/docker/psqldb
       exit
+  - name: Setup environment files
+    command: |
+      /workspace/aws-bootcamp-cruddur-2023/bin/generate-env backend
+      /workspace/aws-bootcamp-cruddur-2023/bin/generate-env frontend
+      /workspace/aws-bootcamp-cruddur-2023/bin/ecs login
+      exit
 
 ports:
   - name: frontend
