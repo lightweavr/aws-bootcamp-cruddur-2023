@@ -5,7 +5,8 @@ require 'erb'
 load_paths = {
   "backend": "backend-flask.env.erb",
   "frontend": "frontend-react-js.env.erb",
-  "frontend-prod": "frontend-react-js.prod.env.erb"
+  "frontend-prod": "frontend-react-js.prod.env.erb",
+  "thumb": "thumbing-cdk.env.erb",
 }
 
 
