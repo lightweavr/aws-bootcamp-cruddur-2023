@@ -19,6 +19,7 @@ Route traffic to the frontend and backend on different subdomains using Applicat
 Securing our flask container - Done
 
 Creating several bash utility scripts to easily work with serverless containers - Done
+
 ![screenshot of the generated env files](assets/week-6-env-file-generation.png)
 
 Extensions:
