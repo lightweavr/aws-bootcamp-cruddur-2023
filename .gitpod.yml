@@ -20,6 +20,7 @@ tasks:
       /workspace/aws-bootcamp-cruddur-2023/bin/update-sg-rule
       export PATH=/workspace/bin:/workspace/aws-bootcamp-cruddur-2023/bin:$PATH
       pip install -r backend-flask/requirements.txt
+      npm install aws-cdk -g
       clear
   - name: install-postgres-client
     command: |
