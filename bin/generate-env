@@ -22,10 +22,14 @@ if not load_paths.has_key?(param)
 end
 
 
-# template = File.read 'erb/backend-flask.env.erb'
-template = File.read "erb/#{load_paths[param]}"
+template = File.read "#{ENV['GITPOD_REPO_ROOT']}/erb/#{load_paths[param]}"
 content = ERB.new(template).result(binding)
 
-# filename = "backend-flask.env"
-filename = File.basename(load_paths[param], ".erb")
+filename = "#{ENV['GITPOD_REPO_ROOT']}/#{File.basename(load_paths[param], '.erb')}"
+
+# Handle the special casing that CDK wants
+if param == "thumb".to_sym
+  filename = "#{ENV['GITPOD_REPO_ROOT']}/thumbing-serverless-cdk/.env"
+end
+
 File.write(filename, content)
