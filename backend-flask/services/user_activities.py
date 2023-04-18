@@ -21,7 +21,7 @@ class UserActivities:
         )
 
         # Alternatively, just use xray_recorder directly
-        subsegment.put_annotation("results_len", len(results))
+        subsegment.put_annotation("results_len", model["data"])
         # set_user only works on the segment, not subsegement
         xray_recorder.current_segment().set_user(cognito_user_id)
         xray_recorder.end_subsegment()

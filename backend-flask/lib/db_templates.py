@@ -51,7 +51,6 @@ get_user_activities = """SELECT
       users.cognito_user_id as cognito_user_uuid,
       users.handle,
       users.display_name,
-      users.bio,
       (
        SELECT
         count(true)
