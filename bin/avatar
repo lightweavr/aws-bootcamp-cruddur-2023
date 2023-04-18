@@ -18,7 +18,7 @@ function clear() {
 }
 
 function upload() {
-    aws s3 cp "data/avatar1.png" "s3://cpbc-lightweaver-ca-uploaded-avatars/"
+    aws s3 cp "$BIN_PATH/data/avatar1.png" "s3://cpbc-lightweaver-ca-uploaded-avatars/"
 }
 
 CYAN='\033[1;36m'
