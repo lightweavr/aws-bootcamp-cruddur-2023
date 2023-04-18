@@ -1,0 +1,41 @@
+#!/bin/bash
+
+ABS_PATH=$(readlink -f "$0")
+BIN_PATH=$(dirname $ABS_PATH)
+PROJECT_PATH=$(dirname $BIN_PATH)
+SERVERLESS_PROJECT_PATH="$PROJECT_PATH/thumbing-serverless-cdk"
+DOMAIN_NAME=cpbc.lightweaver.ca
+
+function build() {
+    cd $SERVERLESS_PROJECT_PATH
+    npm install
+    rm -rf node_modules/sharp
+    SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install --arch=x64 --platform=linux --libc=glibc sharp
+}
+
+function clear() {
+    aws s3 rm "s3://cpbc-lightweaver-ca-uploaded-avatars/ --recursive"
+    aws s3 rm "s3://assets-cpbc-lightweaver-ca/avatars/ --recursive"
+}
+
+function upload() {
+    aws s3 cp "data/avatar1.png" "s3://cpbc-lightweaver-ca-uploaded-avatars/"
+}
+
+CYAN='\033[1;36m'
+NO_COLOR='\033[0m'
+
+# get parameter
+PARAM=$1
+printf "Running ${CYAN}%s${NO_COLOR}\n" "${PARAM}"
+
+# switch case to select function
+case $PARAM in
+    "build") build ;;
+    "clear") clear ;;
+    "upload") upload ;;
+    "setup"|"init")
+        clear
+        upload ;;
+    *) echo "Invalid parameter" ;;
+esac
