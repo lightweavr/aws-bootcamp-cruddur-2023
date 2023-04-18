@@ -116,7 +116,7 @@ def seed_ddb(client, table_name):
         other_user_handle=users["other_user"]["handle"],
     )
 
-    seed_file = (pathlib.Path(__file__).parent / "ddb-seed.txt").resolve()
+    seed_file = (pathlib.Path(__file__).parent / "data/ddb-seed.txt").resolve()
     with open(seed_file, "r") as f:
         lines = f.readlines()
 
@@ -138,7 +138,7 @@ def seed_ddb(client, table_name):
 
         created_at = (now + timedelta(minutes=i)).isoformat()
         message = {
-            "pk": {"S": f"MSG#{message_group_uuid}"},
+            "pk": {"S": f"MSG#{message_group_uuid['message_group_uuid']}"},
             "sk": {"S": created_at},
             "message": {"S": message},
             "message_uuid": {"S": str(uuid.uuid4())},
