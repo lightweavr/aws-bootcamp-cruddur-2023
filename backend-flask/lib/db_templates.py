@@ -87,3 +87,12 @@ WHERE
   users.cognito_user_id = %(cognito_user_id)s
 RETURNING handle;
 """
+
+user_short = """SELECT
+  users.uuid,
+  users.handle,
+  users.display_name
+  FROM public.users
+WHERE
+  users.handle = %(handle)s
+"""

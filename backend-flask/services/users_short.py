@@ -1,17 +1,8 @@
 from lib.db import db
+import lib.db_templates
+
 
 class UsersShort:
-  def run(handle):
-    sql = """
-    SELECT
-        users.uuid,
-        users.handle,
-        users.display_name
-        FROM public.users
-    WHERE
-        users.handle = %(handle)s
-  """.strip()
-    results = db.query_object_json(sql,{
-      'handle': handle
-    })
-    return results
+    def run(handle):
+        results = db.query_object_json(lib.db_templates.user_short, {"handle": handle})
+        return results
