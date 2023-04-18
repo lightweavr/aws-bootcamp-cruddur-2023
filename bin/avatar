@@ -4,10 +4,9 @@ ABS_PATH=$(readlink -f "$0")
 BIN_PATH=$(dirname $ABS_PATH)
 PROJECT_PATH=$(dirname $BIN_PATH)
 SERVERLESS_PROJECT_PATH="$PROJECT_PATH/thumbing-serverless-cdk"
-DOMAIN_NAME=cpbc.lightweaver.ca
 
 function build() {
-    cd $SERVERLESS_PROJECT_PATH
+    cd $PROJECT_PATH/aws/lambdas/process-images
     npm install
     rm -rf node_modules/sharp
     SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install --arch=x64 --platform=linux --libc=glibc sharp
