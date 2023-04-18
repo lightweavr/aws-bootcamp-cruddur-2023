@@ -85,7 +85,9 @@ export class ThumbingServerlessCdkStack extends cdk.Stack {
         FOLDER_OUTPUT: folderOutput,
         PROCESS_WIDTH: '512',
         PROCESS_HEIGHT: '512'
-      }
+      },
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(15)
     });
     return lambdaFunction;
   }
