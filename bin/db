@@ -77,10 +77,12 @@ case $PARAM in
     "drop-sessions" ) drop_sessions "$NO_DB_CONNECTION_URL" ;;
 
     "setup"|"init")
+        drop_sessions "$NO_DB_CONNECTION_URL"
         drop "$NO_DB_CONNECTION_URL"
         create "$NO_DB_CONNECTION_URL"
         schema "$URL"
         seed "$URL"
-        $(dirname $(realpath "${BASH_SOURCE[0]}"))/cognito sync ;;
+        $(dirname $(realpath "${BASH_SOURCE[0]}"))/cognito sync
+        $(dirname $(realpath "${BASH_SOURCE[0]}"))/dbmigrations/migrate ;;
     *) echo "Invalid parameter" ;;
 esac

@@ -148,13 +148,20 @@ class Db:
         # get the line number when exception occured
         line_num = traceback.tb_lineno
 
+        if app:
+            log = app.logger.error
+        else:
+            log = print
+
         # print the connect() error
-        app.logger.error(f"psycopg ERROR: {err} on line number: {line_num}")
-        app.logger.error(f"psycopg traceback: {traceback} -- type: {err_type}")
+        log(f"psycopg ERROR: {err} on line number: {line_num}")
+        log(f"psycopg traceback: {traceback} -- type: {err_type}")
 
         # print the pgcode and pgerror exceptions
-        app.logger.error(f"pgerror: {err.pgerror}")
-        app.logger.error(f"pgcode: {err.pgcode}")
+        if err.pgerror:
+            log(f"pgerror: {err.pgerror}")
+        if err.pgcode:
+            log(f"pgcode: {err.pgcode}")
 
 
 db = Db()
