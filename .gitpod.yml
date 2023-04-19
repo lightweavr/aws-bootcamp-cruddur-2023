@@ -17,8 +17,8 @@ tasks:
       $tempdir/aws/install -i /workspace/aws-cli -b /workspace/bin --update
     command: |
       complete -C '/workspace/bin/aws_completer' aws
-      /workspace/aws-bootcamp-cruddur-2023/bin/update-sg-rule
       export PATH=/workspace/bin:/workspace/aws-bootcamp-cruddur-2023/bin:$PATH
+      /workspace/aws-bootcamp-cruddur-2023/bin/update-sg-rule
       /workspace/aws-bootcamp-cruddur-2023/bin/ecs login
       pip install -r backend-flask/requirements.txt
       npm install aws-cdk -g
