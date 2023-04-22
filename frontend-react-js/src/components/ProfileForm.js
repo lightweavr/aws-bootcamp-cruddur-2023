@@ -14,7 +14,7 @@ export default function ProfileForm(props) {
   const s3uploadkey = async (extension) => {
     console.log('ext', extension)
     try {
-      const gateway_url = `${process.env.REACT_APP_API_GATEWAY_ENDPOINT_URL}/avatars/key_upload`
+      const gateway_url = `${process.env.REACT_APP_API_GATEWAY_ENDPOINT_URL}/avatars/upload_presign_key`
       const access_token = localStorage.getItem('access_token')
       const json = {
         extension: extension,
@@ -45,7 +45,6 @@ export default function ProfileForm(props) {
     const filename = file.name
     const size = file.size
     const type = file.type
-    const preview_image_url = URL.createObjectURL(file)
     console.log(filename, size, type)
     const fileparts = filename.split('.')
     const extension = fileparts[fileparts.length - 1]

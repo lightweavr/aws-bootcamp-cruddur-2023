@@ -1,0 +1,20 @@
+#! /usr/bin/bash
+set -x
+
+DIR=$(mktemp -d)
+cd $DIR
+
+gem i jwt -Ni ruby/gems/2.7.0
+
+zip -r rubygem-jwt.zip . -x ".*" -x "*/.*"
+zipinfo -t rubygem-jwt.zip
+
+aws lambda publish-layer-version \
+  --layer-name jwt \
+  --description "Lambda Layer for JWT" \
+  --license-info "MIT" \
+  --zip-file fileb://rubygem-jwt.zip \
+  --compatible-runtimes ruby2.7
+
+cd -
+echo rm -rf $DIR
