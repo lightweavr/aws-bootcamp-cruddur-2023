@@ -40,7 +40,11 @@ tasks:
       /workspace/aws-bootcamp-cruddur-2023/bin/generate-env backend
       /workspace/aws-bootcamp-cruddur-2023/bin/generate-env frontend
       exit
-
+  - name: Setup CDK requirements
+    command: |
+      cd /workspace/aws-bootcamp-cruddur-2023/thumbing-serverless-cdk
+      npm i --include=dev
+      exit
 ports:
   - name: frontend
     port: 3000
