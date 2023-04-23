@@ -1,5 +1,7 @@
 import './ActivityContent.css'
 
+import ProfileAvatar from './ProfileAvatar'
+
 import { Link } from 'react-router-dom'
 import { format_datetime, time_ago } from '../lib/DateTimeFormats'
 import { ReactComponent as BombIcon } from './svg/bomb.svg'
@@ -20,7 +22,7 @@ export default function ActivityContent(props) {
 
   return (
     <div className="activity_content_wrap">
-      <div className="activity_avatar"></div>
+      <ProfileAvatar id={props.activity.cognito_user_id} />
       <div className="activity_content">
         <div className="activity_meta">
           <Link className="activity_identity" to={`/@` + props.activity.handle}>
