@@ -1,0 +1,2 @@
+#!/bin/bash
+aws lambda update-function-code --function-name cruddur-jwt-authorizer --zip-file fileb://cruddur-jwt-authorizer.zip
