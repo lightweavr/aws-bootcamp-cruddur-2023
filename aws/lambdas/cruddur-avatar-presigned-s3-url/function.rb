@@ -5,12 +5,12 @@ require 'jwt'
 def handler(event:, context:)
   puts event
   # return cors headers for preflight check
-  if event['routeKey'] == "OPTIONS /{proxy+}"
+  if event['routeKey'].start_with?("OPTIONS")
     puts({step: 'preflight', message: 'preflight CORS check'}.to_json)
-    {
+    { 
       headers: {
         "Access-Control-Allow-Headers": "*, Authorization",
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": event['headers']['origin'],
         "Access-Control-Allow-Methods": "OPTIONS,GET,POST"
       },
       statusCode: 200
@@ -35,14 +35,14 @@ def handler(event:, context:)
     url = obj.presigned_url(:put, expires_in: 60 * 5)
     url # this is the data that will be returned
     body = {url: url}.to_json
-    {
+    { 
       headers: {
         "Access-Control-Allow-Headers": "*, Authorization",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "OPTIONS,GET,POST"
       },
-      statusCode: 200,
-      body: body
+      statusCode: 200, 
+      body: body 
     }
-  end # if
+  end # if 
 end # def handler
