@@ -1,0 +1,32 @@
+---
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18.x
+    commands:
+      - echo "cd into $CODEBUILD_SRC_DIR/frontend-react-js"
+      - cd $CODEBUILD_SRC_DIR/frontend-react-js
+      - npm install
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building frontend-react-js in prod mode
+      - npm run build
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Zipping the built files
+      - zip -r build.zip build/*
+      
+env:
+  variables:
+    REACT_APP_BACKEND_URL: https://api.cpbc.lightweaver.ca
+    REACT_APP_API_GATEWAY_ENDPOINT_URL: https://api.cpbc.lightweaver.ca
+    REACT_APP_AWS_PROJECT_REGION: us-west-2
+    REACT_APP_AWS_COGNITO_REGION: us-west-2
+    REACT_APP_AWS_USER_POOLS_ID: us-west-2_jC4wpfY1b
+    REACT_APP_CLIENT_ID: 4mq8n71ja47g2t9cd616t3p136
+artifacts:
+  files:
+    - frontend-react-js/build.zip
