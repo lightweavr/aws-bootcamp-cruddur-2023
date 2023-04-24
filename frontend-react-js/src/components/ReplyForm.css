@@ -54,11 +54,11 @@ form.replies_form button[type='submit'] {
 }
 
 form.replies_form .count {
-  color: rgba(255, 255, 255, 0.3)
+  color: rgba(255, 255, 255, 0.3);
 }
 
 form.replies_form .count.err {
-  color: rgb(255, 0, 0)
+  color: rgb(255, 0, 0);
 }
 
 form.replies_form .expires_at_field {

@@ -24,7 +24,7 @@
   border-radius: 999px;
   display: flex;
   flex-direction: row;
-  gap: 12px
+  gap: 12px;
 }
 
 .activity_item .activity_actions .action .counter {

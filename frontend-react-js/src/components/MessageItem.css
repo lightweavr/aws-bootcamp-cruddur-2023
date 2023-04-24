@@ -12,7 +12,7 @@
 }
 
 .message_item:hover {
-  background: rgba(255, 255, 255, 0.08)
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .message_item:last-child {
@@ -52,7 +52,6 @@
 .message_item .message_identity .handle {
   color: rgb(255, 255, 255, 0.5);
 }
-
 
 .message_item .created_at {
   color: rgb(72, 77, 95);
