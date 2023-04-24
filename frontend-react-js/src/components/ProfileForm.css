@@ -40,7 +40,7 @@ form.profile_form textarea {
 
 form.profile_form input[type='text']:hover,
 form.profile_form textarea:focus {
-  border: solid 1px var(--field-border-focus)
+  border: solid 1px var(--field-border-focus);
 }
 
 .profile_popup button[type='submit'] {
