@@ -13,7 +13,6 @@ phases:
       - echo Build started on `date`
       - echo Building frontend-react-js in prod mode
       - npm run build
-      
 env:
   variables:
     REACT_APP_BACKEND_URL: https://api.cpbc.lightweaver.ca
@@ -24,5 +23,8 @@ env:
     REACT_APP_CLIENT_ID: 4mq8n71ja47g2t9cd616t3p136
 artifacts:
   files:
-    - '**/*'
-  base-directory: '$CODEBUILD_SRC_DIR/frontend-react-js/build'
+    - "**/*"
+  base-directory: $CODEBUILD_SRC_DIR/frontend-react-js/build
+cache:
+  paths:
+    - $CODEBUILD_SRC_DIR/frontend-react-js/node_modules/**/*
