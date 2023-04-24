@@ -13,11 +13,6 @@ phases:
       - echo Build started on `date`
       - echo Building frontend-react-js in prod mode
       - npm run build
-  post_build:
-    commands:
-      - echo Build completed on `date`
-      - echo Zipping the built files
-      - zip -r build.zip build/*
       
 env:
   variables:
@@ -29,4 +24,5 @@ env:
     REACT_APP_CLIENT_ID: 4mq8n71ja47g2t9cd616t3p136
 artifacts:
   files:
-    - frontend-react-js/build.zip
+    - '**/*'
+  base-directory: '$CODEBUILD_SRC_DIR/frontend-react-js/build'
