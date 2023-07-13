@@ -15,6 +15,7 @@ tasks:
       unzip /tmp/awscliv2.zip -d $tempdir/
       rm -f /tmp/awscliv2.zip
       $tempdir/aws/install -i /workspace/aws-cli -b /workspace/bin --update
+      pip install cfn-lint
     command: |
       complete -C '/workspace/bin/aws_completer' aws
       export PATH=/workspace/bin:/workspace/aws-bootcamp-cruddur-2023/bin:$PATH
