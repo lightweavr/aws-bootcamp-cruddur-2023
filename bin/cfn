@@ -1,0 +1,31 @@
+#!/bin/bash
+set -e
+
+BUCKET="lightweaver-cfn-artifacts"
+REGION=${AWS_DEFAULT_REGION}
+
+ABS_PATH=$(readlink -f "$0")
+BIN_PATH=$(dirname "$ABS_PATH")
+PROJECT_PATH=$(dirname "$BIN_PATH")
+
+TARGET=$1
+
+CFN_PATH="${PROJECT_PATH}/aws/cfn/${TARGET}.yml"
+
+if [ ! -e "${CFN_PATH}" ];
+then echo "${CFN_PATH} doesn't exist, exiting"
+exit 1
+fi
+
+cfn-lint "$CFN_PATH"
+
+aws cloudformation deploy \
+  --stack-name "Crudder$TARGET" \
+  --s3-bucket $BUCKET \
+  --s3-prefix "$TARGET" \
+  --region "$REGION" \
+  --template-file "$CFN_PATH" \
+  --no-execute-changeset \
+  --tags group=cruddur-$TARGET \
+  --capabilities CAPABILITY_NAMED_IAM
+#   --parameter-overrides $PARAMETERS \
