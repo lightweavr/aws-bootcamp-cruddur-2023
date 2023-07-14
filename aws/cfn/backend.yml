@@ -1,0 +1,192 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: |
+  The networking and cluster configuration to support fargate containers
+  - ECS Fargate Cluster
+  - API Gateway v2
+    - VPC Link
+    - Domain name
+    - certificate attached from Amazon Certification Manager (ACM)
+  - API Gateway Security Group
+  - Backend Target Group
+
+Parameters:
+  NetworkingStack:
+    Type: String
+    Description: This is our base layer of networking components eg. VPC, Subnets
+    Default: Cruddernetworking
+  HostedZoneID:
+    Type: String
+    Default: Z011980921HYJG4UHJ71K
+  #Backend ------
+  BackendPort:
+    Type: Number
+    Default: 4567
+  BackendHealthCheckIntervalSeconds:
+    Type: String
+    Default: 15
+  BackendHealthCheckPath:
+    Type: String
+    Default: "/api/health-check"
+  BackendHealthCheckPort:
+    Type: String
+    Default: 80
+  BackendHealthCheckProtocol:
+    Type: String
+    Default: HTTP
+  BackendHealthCheckTimeoutSeconds:
+    Type: Number
+    Default: 5
+  BackendHealthyThresholdCount:
+    Type: Number
+    Default: 2
+  BackendUnhealthyThresholdCount:
+    Type: Number
+    Default: 2
+Resources:
+  FargateCluster:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-cluster.html
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${AWS::StackName}FargateCluster"
+      CapacityProviders:
+        - FARGATE_SPOT
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+      Configuration:
+        ExecuteCommandConfiguration:
+          # KmsKeyId: !Ref KmsKeyId
+          Logging: DEFAULT
+      ServiceConnectDefaults:
+        Namespace: cruddur
+  InternetSG:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${AWS::StackName}InternetSG"
+      GroupDescription: Public Facing SG for API Gateway
+      VpcId:
+        Fn::ImportValue: !Sub ${NetworkingStack}VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: "0.0.0.0/0"
+          Description: INTERNET HTTPS
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: "0.0.0.0/0"
+          Description: INTERNET HTTP
+  ApiGateway:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-api.html
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      # No CORS configuration, everything is proxied through
+      Name: CruddrBackendAPI
+      ProtocolType: HTTP
+      Version: v1
+  ApiGatewayVpcLink:
+    Type: AWS::ApiGatewayV2::VpcLink
+    Properties:
+      Name: CruddurVpcLink
+      SecurityGroupIds:
+        - !Ref InternetSG
+      SubnetIds:
+        !Split [",", Fn::ImportValue: !Sub "${NetworkingStack}PrivateSubnetIds"]
+  CloudMapNamespace:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicediscovery-httpnamespace.html
+    Type: AWS::ServiceDiscovery::HttpNamespace
+    Properties:
+      Description: Namespace for crudur backend registration
+      Name: CruddurBackendNamespace
+  CloudMapService:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicediscovery-service.html
+    Type: "AWS::ServiceDiscovery::Service"
+    Properties:
+      Description: Service based on a public DNS namespace
+      Name: CruddurBackendService
+      NamespaceId: !Ref CloudMapNamespace
+
+  ApiGatewayRouteToCloudMap:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-integration.html
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      ConnectionId: !Ref ApiGatewayVpcLink
+      ConnectionType: VPC_LINK
+      Description: Proxy all requests to Cruddur Backend
+      IntegrationMethod: ANY
+      IntegrationType: HTTP_PROXY
+      PayloadFormatVersion: 1.0
+      IntegrationUri: !GetAtt CloudMapService.Arn
+      # IntegrationUri: arn:aws:servicediscovery:us-west-2:017145807427:service/srv-pflj4kgref5n4cuu
+      TimeoutInMillis: 30000
+
+  BackendCertificate:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-certificatemanager-certificate.html
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: api.cpbc.lightweaver.ca
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: api.cpbc.lightweaver.ca
+          HostedZoneId: !Ref HostedZoneID
+
+  # We have to create this SG before the service so we can pass it to database SG
+  # ServiceSG:
+  #   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupName: !Sub "${AWS::StackName}ServSG"
+  #     GroupDescription: Security for Fargate Services for Cruddur
+  #     VpcId:
+  #       Fn::ImportValue: !Sub ${NetworkingStack}VpcId
+  #     SecurityGroupIngress:
+  #       - IpProtocol: tcp
+  #         SourceSecurityGroupId: !GetAtt ALBSG.GroupId
+  #         FromPort: !Ref BackendPort
+  #         ToPort: !Ref BackendPort
+  #         Description: ALB HTTP
+  BackendTG:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-targetgroup.html
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      #Name: !Sub "${AWS::StackName}BackendTG"
+      Port: !Ref BackendPort
+      HealthCheckEnabled: true
+      HealthCheckProtocol: !Ref BackendHealthCheckProtocol
+      HealthCheckIntervalSeconds: !Ref BackendHealthCheckIntervalSeconds
+      HealthCheckPath: !Ref BackendHealthCheckPath
+      HealthCheckPort: !Ref BackendHealthCheckPort
+      HealthCheckTimeoutSeconds: !Ref BackendHealthCheckTimeoutSeconds
+      HealthyThresholdCount: !Ref BackendHealthyThresholdCount
+      UnhealthyThresholdCount: !Ref BackendUnhealthyThresholdCount
+      IpAddressType: ipv4
+      Matcher:
+        HttpCode: 200
+      Protocol: HTTP
+      ProtocolVersion: HTTP2
+      TargetType: ip
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 0
+      VpcId:
+        Fn::ImportValue: !Sub ${NetworkingStack}VpcId
+      Tags:
+        - Key: target-group-name
+          Value: backend
+Outputs:
+  ClusterName:
+    Value: !Ref FargateCluster
+    Export:
+      Name: !Sub "${AWS::StackName}ClusterName"
+  # ServiceSecurityGroupId:
+  #   Value: !GetAtt ServiceSG.GroupId
+  #   Export:
+  #     Name: !Sub "${AWS::StackName}ServiceSecurityGroupId"
+  InternetSG:
+    Value: !GetAtt InternetSG.GroupId
+    Export:
+      Name: !Sub "${AWS::StackName}InternetSGId"
