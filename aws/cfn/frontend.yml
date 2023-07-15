@@ -1,9 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: |
+  - S3 Bucket & Bucket Policy
   - CloudFront Distribution
-  - S3 Bucket for naked domain
-  - Bucket Policy
-
+  - Route 53 Alias setup
 Parameters:
   CertificateArn:
     Type: String
@@ -127,3 +126,8 @@ Resources:
           AcmCertificateArn: !Ref CertificateArn
           SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1.2_2021
+Outputs:
+  DNSName:
+    Value: !Ref DNSName
+    Export:
+      Name: !Sub "${AWS::StackName}DNSName"
