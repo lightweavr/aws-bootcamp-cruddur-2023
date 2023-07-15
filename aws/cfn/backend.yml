@@ -16,40 +16,16 @@ Parameters:
     Description: This is our base layer of networking components eg. VPC, Subnets
     Default: Cruddernetworking
   HostedZoneID:
-    Type: String
+    Type: AWS::Route53::HostedZone::Id
     Default: Z011980921HYJG4UHJ71K
-  #Backend ------
-  # BackendPort:
-  #   Type: Number
-  #   Default: 4567
-  # BackendHealthCheckIntervalSeconds:
-  #   Type: String
-  #   Default: 15
-  # BackendHealthCheckPath:
-  #   Type: String
-  #   Default: "/api/health-check"
-  # BackendHealthCheckPort:
-  #   Type: String
-  #   Default: 80
-  # BackendHealthCheckProtocol:
-  #   Type: String
-  #   Default: HTTP
-  # BackendHealthCheckTimeoutSeconds:
-  #   Type: Number
-  #   Default: 5
-  # BackendHealthyThresholdCount:
-  #   Type: Number
-  #   Default: 2
-  # BackendUnhealthyThresholdCount:
-  #   Type: Number
-  #   Default: 2
+
 Resources:
   # Backend on Fargate
-  FargateCluster:
+  EcsCluster:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-cluster.html
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Sub "${AWS::StackName}FargateCluster"
+      ClusterName: !Sub "${AWS::StackName}EcsCluster"
       CapacityProviders:
         - FARGATE_SPOT
       ClusterSettings:
@@ -60,13 +36,37 @@ Resources:
           Logging: DEFAULT
       ServiceConnectDefaults:
         Namespace: !GetAtt CloudMapNamespace.Arn
+  EcsClusterSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${AWS::StackName}ServSG"
+      GroupDescription: Security for Fargate Services for Cruddur
+      VpcId:
+        Fn::ImportValue: !Sub ${NetworkingStack}VpcId
+      # No egress = All traffic allowed
+      # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html#aws-properties-ec2-security-group--examples--Remove_the_default_rule
+      # Allow all traffic from API Gateway SG
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          SourceSecurityGroupId: !GetAtt ApiGatewaySG.GroupId
+          FromPort: 0
+          ToPort: 0
+          Description: ALB HTTP
 
   # Ingress through API Gateway
-  InternetSG:
+  ApiGateway:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-api.html
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      # No CORS configuration, everything is proxied through
+      Name: CruddrBackendAPI
+      ProtocolType: HTTP
+      Version: v1
+  ApiGatewaySG:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub "${AWS::StackName}InternetSG"
+      GroupName: !Sub "${AWS::StackName}ApiGatewaySG"
       GroupDescription: Public Facing SG for API Gateway
       VpcId:
         Fn::ImportValue: !Sub ${NetworkingStack}VpcId
@@ -91,22 +91,14 @@ Resources:
           ToPort: 80
           CidrIpv6: "::/0"
           Description: INTERNET HTTP
-  ApiGateway:
-    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-api.html
-    Type: AWS::ApiGatewayV2::Api
-    Properties:
-      # No CORS configuration, everything is proxied through
-      Name: CruddrBackendAPI
-      ProtocolType: HTTP
-      Version: v1
   ApiGatewayVpcLink:
     Type: AWS::ApiGatewayV2::VpcLink
     Properties:
       Name: CruddurVpcLink
       SecurityGroupIds:
-        - !Ref InternetSG
+        - !Ref ApiGatewaySG
       SubnetIds:
-        !Split [",", Fn::ImportValue: !Sub "${NetworkingStack}PrivateSubnetIds"]
+        !Split [",", Fn::ImportValue: !Sub "${NetworkingStack}PublicSubnetIds"]
 
   # Service Discovery through CloudMap
   CloudMapNamespace:
@@ -142,18 +134,18 @@ Resources:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-certificatemanager-certificate.html
     Type: AWS::CertificateManager::Certificate
     Properties:
-      DomainName: api.cpbc.lightweaver.ca
+      DomainName: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
       ValidationMethod: DNS
       DomainValidationOptions:
-        - DomainName: api.cpbc.lightweaver.ca
+        - DomainName: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
           HostedZoneId: !Ref HostedZoneID
 
 Outputs:
   ClusterName:
-    Value: !Ref FargateCluster
+    Value: !Ref EcsCluster
     Export:
       Name: !Sub "${AWS::StackName}ClusterName"
-  InternetSG:
-    Value: !GetAtt InternetSG.GroupId
+  EcsClusterSG:
+    Value: !GetAtt EcsClusterSG.GroupId
     Export:
-      Name: !Sub "${AWS::StackName}InternetSGId"
+      Name: !Sub "${AWS::StackName}EcsClusterSGId"
