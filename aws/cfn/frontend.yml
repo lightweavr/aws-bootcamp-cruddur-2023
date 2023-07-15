@@ -27,15 +27,15 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Sid: AllowCloudFrontServicePrincipalReadOnly
-            Effect: Allow
-            Principal:
-              Service: "cloudfront.amazonaws.com"
-            Action: "s3:GetObject"
-            Resource: !Sub "${StaticSiteBucket.Arn}/*"
-            Condition:
-              - StringEquals:
-                  - "AWS:SourceArn": !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}
+          Sid: AllowCloudFrontServicePrincipalReadOnly
+          Effect: Allow
+          Principal:
+            Service: "cloudfront.amazonaws.com"
+          Action: "s3:GetObject"
+          Resource: !Sub "${StaticSiteBucket.Arn}/*"
+          Condition:
+            StringEquals:
+              "AWS:SourceArn": !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}
   StaticSiteBucket:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html
     Type: AWS::S3::Bucket
