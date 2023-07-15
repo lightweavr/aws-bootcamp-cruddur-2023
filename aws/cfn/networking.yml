@@ -159,6 +159,24 @@ Resources:
     Properties:
       SubnetId: !Ref SubnetPriv3
       RouteTableId: !Ref RouteTable
+  DdbEndpoint:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      VpcEndpointType: "Gateway"
+      RouteTableIds:
+        - !Ref RouteTable
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.dynamodb"
+      VpcId: !Ref VPC
+  S3Endpoint:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      VpcEndpointType: "Gateway"
+      RouteTableIds:
+        - !Ref RouteTable
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcId: !Ref VPC
 Outputs:
   VpcId:
     Value: !Ref VPC
