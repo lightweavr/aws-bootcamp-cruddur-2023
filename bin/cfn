@@ -8,7 +8,7 @@ ABS_PATH=$(readlink -f "$0")
 BIN_PATH=$(dirname "$ABS_PATH")
 PROJECT_PATH=$(dirname "$BIN_PATH")
 
-TARGET=$1
+TARGET=$1; shift
 
 CFN_PATH="${PROJECT_PATH}/aws/cfn/${TARGET}.yml"
 
@@ -19,13 +19,26 @@ fi
 
 cfn-lint "$CFN_PATH"
 
-aws cloudformation deploy \
-  --stack-name "Crudder$TARGET" \
-  --s3-bucket $BUCKET \
-  --s3-prefix "$TARGET" \
-  --region "$REGION" \
-  --template-file "$CFN_PATH" \
-  --no-execute-changeset \
-  --tags group=cruddur-$TARGET \
-  --capabilities CAPABILITY_NAMED_IAM
-#   --parameter-overrides $PARAMETERS \
+if [ ! -z "$@" ]
+then
+  aws cloudformation deploy \
+    --stack-name "Crudder$TARGET" \
+    --s3-bucket $BUCKET \
+    --s3-prefix "$TARGET" \
+    --region "$REGION" \
+    --template-file "$CFN_PATH" \
+    --no-execute-changeset \
+    --tags group=cruddur-$TARGET \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --parameter-overrides $@
+else
+  aws cloudformation deploy \
+    --stack-name "Crudder$TARGET" \
+    --s3-bucket $BUCKET \
+    --s3-prefix "$TARGET" \
+    --region "$REGION" \
+    --template-file "$CFN_PATH" \
+    --no-execute-changeset \
+    --tags group=cruddur-$TARGET \
+    --capabilities CAPABILITY_NAMED_IAM
+fi
