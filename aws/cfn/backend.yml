@@ -19,31 +19,32 @@ Parameters:
     Type: String
     Default: Z011980921HYJG4UHJ71K
   #Backend ------
-  BackendPort:
-    Type: Number
-    Default: 4567
-  BackendHealthCheckIntervalSeconds:
-    Type: String
-    Default: 15
-  BackendHealthCheckPath:
-    Type: String
-    Default: "/api/health-check"
-  BackendHealthCheckPort:
-    Type: String
-    Default: 80
-  BackendHealthCheckProtocol:
-    Type: String
-    Default: HTTP
-  BackendHealthCheckTimeoutSeconds:
-    Type: Number
-    Default: 5
-  BackendHealthyThresholdCount:
-    Type: Number
-    Default: 2
-  BackendUnhealthyThresholdCount:
-    Type: Number
-    Default: 2
+  # BackendPort:
+  #   Type: Number
+  #   Default: 4567
+  # BackendHealthCheckIntervalSeconds:
+  #   Type: String
+  #   Default: 15
+  # BackendHealthCheckPath:
+  #   Type: String
+  #   Default: "/api/health-check"
+  # BackendHealthCheckPort:
+  #   Type: String
+  #   Default: 80
+  # BackendHealthCheckProtocol:
+  #   Type: String
+  #   Default: HTTP
+  # BackendHealthCheckTimeoutSeconds:
+  #   Type: Number
+  #   Default: 5
+  # BackendHealthyThresholdCount:
+  #   Type: Number
+  #   Default: 2
+  # BackendUnhealthyThresholdCount:
+  #   Type: Number
+  #   Default: 2
 Resources:
+  # Backend on Fargate
   FargateCluster:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-cluster.html
     Type: AWS::ECS::Cluster
@@ -56,10 +57,11 @@ Resources:
           Value: enabled
       Configuration:
         ExecuteCommandConfiguration:
-          # KmsKeyId: !Ref KmsKeyId
           Logging: DEFAULT
       ServiceConnectDefaults:
-        Namespace: cruddur
+        Namespace: !GetAtt CloudMapNamespace.Arn
+
+  # Ingress through API Gateway
   InternetSG:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
     Type: AWS::EC2::SecurityGroup
@@ -79,6 +81,16 @@ Resources:
           ToPort: 80
           CidrIp: "0.0.0.0/0"
           Description: INTERNET HTTP
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIpv6: "::/0"
+          Description: INTERNET HTTPS
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIpv6: "::/0"
+          Description: INTERNET HTTP
   ApiGateway:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-api.html
     Type: AWS::ApiGatewayV2::Api
@@ -95,6 +107,8 @@ Resources:
         - !Ref InternetSG
       SubnetIds:
         !Split [",", Fn::ImportValue: !Sub "${NetworkingStack}PrivateSubnetIds"]
+
+  # Service Discovery through CloudMap
   CloudMapNamespace:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicediscovery-httpnamespace.html
     Type: AWS::ServiceDiscovery::HttpNamespace
@@ -134,58 +148,11 @@ Resources:
         - DomainName: api.cpbc.lightweaver.ca
           HostedZoneId: !Ref HostedZoneID
 
-  # We have to create this SG before the service so we can pass it to database SG
-  # ServiceSG:
-  #   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties:
-  #     GroupName: !Sub "${AWS::StackName}ServSG"
-  #     GroupDescription: Security for Fargate Services for Cruddur
-  #     VpcId:
-  #       Fn::ImportValue: !Sub ${NetworkingStack}VpcId
-  #     SecurityGroupIngress:
-  #       - IpProtocol: tcp
-  #         SourceSecurityGroupId: !GetAtt ALBSG.GroupId
-  #         FromPort: !Ref BackendPort
-  #         ToPort: !Ref BackendPort
-  #         Description: ALB HTTP
-  BackendTG:
-    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-targetgroup.html
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      #Name: !Sub "${AWS::StackName}BackendTG"
-      Port: !Ref BackendPort
-      HealthCheckEnabled: true
-      HealthCheckProtocol: !Ref BackendHealthCheckProtocol
-      HealthCheckIntervalSeconds: !Ref BackendHealthCheckIntervalSeconds
-      HealthCheckPath: !Ref BackendHealthCheckPath
-      HealthCheckPort: !Ref BackendHealthCheckPort
-      HealthCheckTimeoutSeconds: !Ref BackendHealthCheckTimeoutSeconds
-      HealthyThresholdCount: !Ref BackendHealthyThresholdCount
-      UnhealthyThresholdCount: !Ref BackendUnhealthyThresholdCount
-      IpAddressType: ipv4
-      Matcher:
-        HttpCode: 200
-      Protocol: HTTP
-      ProtocolVersion: HTTP2
-      TargetType: ip
-      TargetGroupAttributes:
-        - Key: deregistration_delay.timeout_seconds
-          Value: 0
-      VpcId:
-        Fn::ImportValue: !Sub ${NetworkingStack}VpcId
-      Tags:
-        - Key: target-group-name
-          Value: backend
 Outputs:
   ClusterName:
     Value: !Ref FargateCluster
     Export:
       Name: !Sub "${AWS::StackName}ClusterName"
-  # ServiceSecurityGroupId:
-  #   Value: !GetAtt ServiceSG.GroupId
-  #   Export:
-  #     Name: !Sub "${AWS::StackName}ServiceSecurityGroupId"
   InternetSG:
     Value: !GetAtt InternetSG.GroupId
     Export:
