@@ -46,7 +46,7 @@ Resources:
       PublicAccessBlockConfiguration:
         BlockPublicPolicy: true
         BlockPublicAcls: true
-        gnorePublicAcls: true
+        IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
   # Cloudfront
