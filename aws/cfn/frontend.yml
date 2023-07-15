@@ -45,6 +45,9 @@ Resources:
       BucketName: !Ref StaticSiteBucketName
       PublicAccessBlockConfiguration:
         BlockPublicPolicy: true
+        BlockPublicAcls: true
+        gnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   # Cloudfront
   CloudFrontOriginAccessControl:
