@@ -84,7 +84,7 @@ Resources:
     Properties:
       HostedZoneName: !Sub ${DNSName}.
       Name: !Sub ${DNSName}.
-      Type: A
+      Type: AAAA
       AliasTarget:
         # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html#cfn-route53-aliastarget-hostedzoneid
         # Specify Z2FDTNDATAQYW2. This is always the hosted zone ID when you create an alias record that routes traffic to a CloudFront distribution.
