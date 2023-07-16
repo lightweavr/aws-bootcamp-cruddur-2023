@@ -8,7 +8,13 @@ import sys
 
 class Db:
     def __init__(self):
-        connection_url = os.getenv("CONNECTION_URL")
+        if "CONNECTION_URL" in os.environ:
+            connection_url = os.getenv("CONNECTION_URL")
+        else:
+            user = os.getenv("DB_USER")
+            password = os.getenv("DB_PASSWORD")
+            host = os.getenv("DB_ENDPOINT")
+            connection_url = f"postgresql://{user}:{password}@{host}:5432/cruddur"
         self.pool = ConnectionPool(connection_url)
 
     def query_commit(self, sql, params={}):
