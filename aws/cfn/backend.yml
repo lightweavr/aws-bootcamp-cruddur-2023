@@ -149,3 +149,7 @@ Outputs:
     Value: !GetAtt EcsClusterSG.GroupId
     Export:
       Name: !Sub "${AWS::StackName}EcsClusterSGId"
+  CloudMapServiceRegistry:
+    Value: !GetAtt CloudMapService.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}CloudMapServiceRegistry"
