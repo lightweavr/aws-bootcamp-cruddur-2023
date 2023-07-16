@@ -49,9 +49,9 @@ Resources:
       SecurityGroupIngress:
         - IpProtocol: tcp
           SourceSecurityGroupId: !GetAtt ApiGatewaySG.GroupId
-          FromPort: 0
-          ToPort: 0
-          Description: ALB HTTP
+          FromPort: 4567
+          ToPort: 4567
+          Description: API Gateway Traffic
 
   # Ingress through API Gateway
   ApiGateway:
