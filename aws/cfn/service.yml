@@ -96,7 +96,7 @@ Resources:
       SchedulingStrategy: REPLICA
       ServiceConnectConfiguration:
         Enabled: true
-        Namespace: "cruddur"
+        Namespace: arn:aws:servicediscovery:us-west-2:017145807427:namespace/ns-4kivn7ny3jbubpbd
         # TODO - If you want to log
         # LogConfiguration
         Services:
@@ -104,8 +104,8 @@ Resources:
             PortName: !Ref ServiceName
             ClientAliases:
               - Port: !Ref ContainerPort
-      #ServiceRegistries:
-      #  - RegistryArn: !Sub 'arn:aws:servicediscovery:${AWS::Region}:${AWS::AccountId}:service/srv-cruddur-backend-flask'
+      ServiceRegistries:
+        - RegistryArn: arn:aws:servicediscovery:us-west-2:017145807427:namespace/ns-4kivn7ny3jbubpbd
       #    Port: !Ref ContainerPort
       #    ContainerName: 'backend-flask'
       #    ContainerPort: !Ref ContainerPort
@@ -231,7 +231,7 @@ Resources:
                 Action:
                   - "ssm:GetParameters"
                   - "ssm:GetParameter"
-                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cruddur/${ServiceName}/*"
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cruddur/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
   TaskRole:
@@ -272,8 +272,8 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-Outputs:
-  ServiceName:
-    Value: !GetAtt CruddurService.Name
-    Export:
-      Name: !Sub "${AWS::StackName}ServiceName"
+# Outputs:
+#   ServiceName:
+#     Value: !GetAtt CruddurService.Name
+#     Export:
+#       Name: !Sub "${AWS::StackName}ServiceName"
