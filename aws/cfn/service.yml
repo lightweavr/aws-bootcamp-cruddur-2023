@@ -105,7 +105,7 @@ Resources:
             ClientAliases:
               - Port: !Ref ContainerPort
       ServiceRegistries:
-        - RegistryArn: arn:aws:servicediscovery:us-west-2:017145807427:namespace/ns-4kivn7ny3jbubpbd
+        - RegistryArn: arn:aws:servicediscovery:us-west-2:017145807427:service/srv-2axh2ollqxb5wtcr
       #    Port: !Ref ContainerPort
       #    ContainerName: 'backend-flask'
       #    ContainerPort: !Ref ContainerPort
@@ -139,7 +139,7 @@ Resources:
           HealthCheck:
             Command:
               - "CMD-SHELL"
-              - "python /backend-flask/bin/health-check"
+              - "python /backend-flask/bin/health-check backend"
             Interval: 30
             Timeout: 5
             Retries: 3
