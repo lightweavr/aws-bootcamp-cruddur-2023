@@ -99,18 +99,18 @@ def after_request(response):
 
 
 # Rollbar
-@app.before_first_request
 def init_rollbar():
-    rollbar.init(
-        access_token=os.getenv("ROLLBAR_ACCESS_TOKEN"),
-        environment="production",
-        # server root directory, makes tracebacks prettier
-        root=os.path.dirname(os.path.realpath(__file__)),
-        # flask already sets up logging
-        allow_logging_basic_config=False,
-    )
-    rollbar.report_message("Rollbar is configured correctly", "info")
-    got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
+    with app.app_context():
+        rollbar.init(
+            access_token=os.getenv("ROLLBAR_ACCESS_TOKEN"),
+            environment="production",
+            # server root directory, makes tracebacks prettier
+            root=os.path.dirname(os.path.realpath(__file__)),
+            # flask already sets up logging
+            allow_logging_basic_config=False,
+        )
+        rollbar.report_message("Rollbar is configured correctly", "info")
+        got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
 
 
 # CORS handling
