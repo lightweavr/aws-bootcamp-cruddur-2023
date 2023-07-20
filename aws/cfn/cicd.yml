@@ -16,6 +16,9 @@ Parameters:
   ServiceStack:
     Type: String
     Default: Crudderservice
+  FrontendStack:
+    Type: String
+    Default: Crudderfrontend
 Resources:
   CodeBuildBackendImageStack:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-stack.html
@@ -23,7 +26,8 @@ Resources:
     Properties:
       Parameters:
         BuildName: backend-flask
-        BuildSpec: backend-flask/codebuild.yml
+        BuildSpec: backend-flask/buildspec.yml
+        ArtifactBucketName: !Ref ArtifactBucket
       TemplateURL: codebuild.yml
 
   CodeBuildFrontendStack:
@@ -32,7 +36,9 @@ Resources:
     Properties:
       Parameters:
         BuildName: frontend-react-js
-        BuildSpec: frontend-react-js/codebuild.yml
+        BuildSpec: frontend-react-js/buildspec.yml
+        ArtifactBucketName: !Ref ArtifactBucket
+        CodeBuildImage: aws/codebuild/amazonlinux2-x86_64-standard:5.0
       TemplateURL: codebuild.yml
 
   CodeStarConnection:
@@ -81,7 +87,8 @@ Resources:
                 OutputArtifactFormat: "CODE_ZIP"
         - Name: Build
           Actions:
-            - Name: BuildContainerImage
+            - Name: Build-Backend
+              # https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-CodeBuild.html
               RunOrder: 1
               ActionTypeId:
                 Category: Build
@@ -91,14 +98,28 @@ Resources:
               InputArtifacts:
                 - Name: Source
               OutputArtifacts:
-                - Name: ImageDefinition
+                - Name: BackendBuildArtifact
               Configuration:
                 ProjectName: !GetAtt CodeBuildBackendImageStack.Outputs.CodeBuildProjectName
                 BatchEnabled: false
-        # https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-ECS.html
+            - Name: Build-Frontend
+              RunOrder: 1
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              InputArtifacts:
+                - Name: Source
+              OutputArtifacts:
+                - Name: FrontendBuildArtifact
+              Configuration:
+                ProjectName: !GetAtt CodeBuildFrontendStack.Outputs.CodeBuildProjectName
+                BatchEnabled: false
         - Name: Deploy
           Actions:
-            - Name: Deploy
+            - Name: Deploy-Backend
+              # https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-ECS.html
               RunOrder: 1
               ActionTypeId:
                 Category: Deploy
@@ -106,7 +127,7 @@ Resources:
                 Owner: AWS
                 Version: "1"
               InputArtifacts:
-                - Name: ImageDefinition
+                - Name: BackendBuildArtifact
               Configuration:
                 # In Minutes
                 DeploymentTimeout: "10"
@@ -114,6 +135,21 @@ Resources:
                   Fn::ImportValue: !Sub ${ClusterStack}ClusterName
                 ServiceName:
                   Fn::ImportValue: !Sub ${ServiceStack}ServiceName
+            - Name: Deploy-Frontend
+              # https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-S3Deploy.html
+              RunOrder: 1
+              ActionTypeId:
+                Category: Deploy
+                Provider: S3
+                Owner: AWS
+                Version: "1"
+              InputArtifacts:
+                - Name: FrontendBuildArtifact
+              Configuration:
+                BucketName:
+                  Fn::ImportValue: !Sub ${FrontendStack}BucketName
+                Extract: false
+
   CodePipelineRole:
     Type: AWS::IAM::Role
     Properties:
@@ -176,12 +212,8 @@ Resources:
                   - codebuild:StartBuild
                   - codebuild:StopBuild
                   - codebuild:RetryBuild
+                  - codebuild:BatchGetBuilds
+                  - codebuild:BatchGetBuildBatches
+                  - codebuild:StartBuildBatch
                 Effect: Allow
-                Resource: !Join
-                  - ""
-                  - - "arn:aws:codebuild:"
-                    - !Ref AWS::Region
-                    - ":"
-                    - !Ref AWS::AccountId
-                    - ":project/"
-                    - !GetAtt CodeBuildBackendImageStack.Outputs.CodeBuildProjectName
+                Resource: !Sub "arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/*"
