@@ -10,11 +10,15 @@ Parameters:
     Description: Name of the project to use to disambiguate
   BuildSpec:
     Type: String
+  ArtifactBucketName:
+    Type: String
   LogGroupPath:
     Type: String
     Description: "The log group path for CodeBuild"
     Default: "/cruddur/codebuild"
   CodeBuildImage:
+    # Not all runtime versions are supported on all codebuild images, cross reference runtime version with build image here:
+    # https://docs.aws.amazon.com/codebuild/latest/userguide/available-runtimes.html
     Type: String
     Default: aws/codebuild/amazonlinux2-x86_64-standard:4.0
   CodeBuildComputeType:
@@ -25,7 +29,7 @@ Parameters:
     Default: 5
 
 Resources:
-  BackendCodeBuild:
+  CodeBuild:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codebuild-project.html
     Type: AWS::CodeBuild::Project
     Properties:
@@ -116,9 +120,10 @@ Resources:
                   - s3:GetBucketLocation
                 Effect: Allow
                 Resource:
-                  - !Sub arn:aws:s3:::codepipeline-${AWS::Region}-*
+                  - !Sub arn:aws:s3:::${ArtifactBucketName}
+                  - !Sub arn:aws:s3:::${ArtifactBucketName}/*
 
 Outputs:
   CodeBuildProjectName:
     Description: "CodeBuildProjectName"
-    Value: !Sub ${AWS::StackName}BackendProject
+    Value: !Ref CodeBuild
