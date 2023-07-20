@@ -17,9 +17,25 @@ then echo "${CFN_PATH} doesn't exist, exiting"
 exit 1
 fi
 
+# Handle nested stacks by triggering packaging before deletion if the line AWS::CloudFormation::Stack is present
+if [ $(grep -c "AWS::CloudFormation::Stack" "${CFN_PATH}") -ne 0 ]
+then
+  packaged_file=$(mktemp /tmp/aws-cfn-packaged-stack-XXXXXXXXX)
+  aws cloudformation package \
+    --template-file $CFN_PATH \
+    --s3-bucket $BUCKET \
+    --s3-prefix "$TARGET" \
+    --region $REGION \
+    --output-template-file "$packaged_file"
+
+  CFN_PATH=$packaged_file
+fi
+
 cfn-lint "$CFN_PATH"
 
-if [ ! -z "$@" ]
+# Explicitly collapse all remaining arguments into a single string for comparison
+# https://stackoverflow.com/questions/22589032/what-is-the-difference-between-and
+if [ ! -z "$*" ]
 then
   aws cloudformation deploy \
     --stack-name "Crudder$TARGET" \
@@ -30,7 +46,7 @@ then
     --no-execute-changeset \
     --tags group=cruddur-$TARGET \
     --capabilities CAPABILITY_NAMED_IAM \
-    --parameter-overrides $@
+    --parameter-overrides "$@"
 else
   aws cloudformation deploy \
     --stack-name "Crudder$TARGET" \
