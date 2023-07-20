@@ -131,3 +131,7 @@ Outputs:
     Value: !Ref DNSName
     Export:
       Name: !Sub "${AWS::StackName}DNSName"
+  BucketName:
+    Value: !Ref StaticSiteBucket
+    Export:
+      Name: !Sub "${AWS::StackName}BucketName"
