@@ -148,7 +148,7 @@ Resources:
               Configuration:
                 BucketName:
                   Fn::ImportValue: !Sub ${FrontendStack}BucketName
-                Extract: false
+                Extract: true
 
   CodePipelineRole:
     Type: AWS::IAM::Role
