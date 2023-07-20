@@ -217,3 +217,40 @@ Resources:
                   - codebuild:StartBuildBatch
                 Effect: Allow
                 Resource: !Sub "arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/*"
+
+  EventbridgeTrigger:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: !Sub Trigger CodePipeline ${Pipeline} on a schedule
+      FlexibleTimeWindow:
+        MaximumWindowInMinutes: 240
+        Mode: FLEXIBLE
+      ScheduleExpression: "rate(1 day)"
+      ScheduleExpressionTimezone: UTC
+      Target:
+        Arn: !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}
+        RoleArn: !GetAtt EventbridgeIAMRole.Arn
+
+  EventbridgeIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+      Path: /cruddur/eventbridge/
+      Policies:
+        - PolicyName: TriggerCodePipeline
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - codepipeline:StartPipelineExecution
+                Effect: Allow
+                Resource: !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}
