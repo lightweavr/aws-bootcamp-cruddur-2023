@@ -1,0 +1,124 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  Codebuild used for baking container images
+  - Codebuild Project
+  - Codebuild Project Role
+
+Parameters:
+  BuildName:
+    Type: String
+    Description: Name of the project to use to disambiguate
+  BuildSpec:
+    Type: String
+  LogGroupPath:
+    Type: String
+    Description: "The log group path for CodeBuild"
+    Default: "/cruddur/codebuild"
+  CodeBuildImage:
+    Type: String
+    Default: aws/codebuild/amazonlinux2-x86_64-standard:4.0
+  CodeBuildComputeType:
+    Type: String
+    Default: BUILD_GENERAL1_SMALL
+  CodeBuildTimeoutMins:
+    Type: Number
+    Default: 5
+
+Resources:
+  BackendCodeBuild:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codebuild-project.html
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Description: !Sub "Build ${BuildName}"
+      ConcurrentBuildLimit: 1
+      QueuedTimeoutInMinutes: !Ref CodeBuildTimeoutMins
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      # PrivilegedMode is needed to build Docker images
+      # even though we have No Artifacts, CodePipeline Demands both to be set as CODEPIPLINE
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: !Ref CodeBuildComputeType
+        Image: !Ref CodeBuildImage
+        Type: LINUX_CONTAINER
+        PrivilegedMode: true
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: !Ref LogGroupPath
+          Status: ENABLED
+          StreamName: !Ref BuildName
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Ref BuildSpec
+      Visibility: PRIVATE
+  CodeBuildRole:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: ["sts:AssumeRole"]
+            Effect: Allow
+            Principal:
+              Service: [codebuild.amazonaws.com]
+        Version: "2012-10-17"
+      Path: /
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}ECRPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:CompleteLayerUpload
+                  - ecr:GetAuthorizationToken
+                  - ecr:InitiateLayerUpload
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:PutImage
+                  - ecr:UploadLayerPart
+                Effect: Allow
+                Resource: "*"
+        - PolicyName: !Sub ${AWS::StackName}Logs
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LogGroupPath}
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LogGroupPath}:*
+        - PolicyName: !Sub ${AWS::StackName}CodebuildReport
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - codebuild:CreateReportGroup
+                  - codebuild:CreateReport
+                  - codebuild:UpdateReport
+                  - codebuild:BatchPutTestCases
+                  - codebuild:BatchPutCodeCoverage
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:*
+        - PolicyName: !Sub ${AWS::StackName}S3Access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketAcl
+                  - s3:GetBucketLocation
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:s3:::codepipeline-${AWS::Region}-*
+
+Outputs:
+  CodeBuildProjectName:
+    Description: "CodeBuildProjectName"
+    Value: !Sub ${AWS::StackName}BackendProject
