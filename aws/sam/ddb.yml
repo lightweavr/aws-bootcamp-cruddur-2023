@@ -8,8 +8,10 @@ Parameters:
     Type: String
     Default: python3.10
   MemorySize:
-    Type: String
+    Type: Number
     Default: 128
+    MinValue: 128
+    MaxValue: 1024
   Timeout:
     Type: Number
     Default: 3
@@ -73,6 +75,7 @@ Resources:
             Stream: !GetAtt DynamoDBTable.StreamArn
             Enabled: true
             BatchSize: 5
+            MaximumRetryAttempts: 1
             StartingPosition: LATEST
             BisectBatchOnFunctionError: true
             FilterCriteria:
@@ -83,7 +86,7 @@ Resources:
     # Set the log retention
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: "/aws/lambda/cruddur-messaging-stream"
+      LogGroupName: !Sub "/aws/lambda/${ProcessDynamoDBStream}"
       RetentionInDays: 1
   ExecutionRole:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html
@@ -102,13 +105,10 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
-                Action: "logs:CreateLogGroup"
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
-              - Effect: "Allow"
                 Action:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LambdaLogGroup}:*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*"
               - Effect: "Allow"
                 Action:
                   - "lambda:InvokeFunction"
