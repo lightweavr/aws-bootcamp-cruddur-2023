@@ -1,0 +1,130 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: |
+  - DynamoDB Table
+  - DynamoDB Stream
+Parameters:
+  PythonRuntime:
+    Type: String
+    Default: python3.10
+  MemorySize:
+    Type: String
+    Default: 128
+  Timeout:
+    Type: Number
+    Default: 3
+  DeletionProtectionEnabled:
+    Type: String
+    Default: false
+Resources:
+  DynamoDBTable:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: message_group_uuid
+          AttributeType: S
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      TableClass: STANDARD
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      BillingMode: PROVISIONED
+      DeletionProtectionEnabled: !Ref DeletionProtectionEnabled
+      GlobalSecondaryIndexes:
+        - IndexName: message-group-sk-index
+          KeySchema:
+            - AttributeName: message_group_uuid
+              KeyType: HASH
+            - AttributeName: sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+  ProcessDynamoDBStream:
+    # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Update the Cruddur message preview after messages get sent
+      CodeUri: messaging-streams
+      PackageType: Zip
+      Handler: cruddur-messaging-streams.lambda_handler
+      Runtime: !Ref PythonRuntime
+      Role: !GetAtt ExecutionRole.Arn
+      MemorySize: !Ref MemorySize
+      Timeout: !Ref Timeout
+      Events:
+        Stream:
+          Type: DynamoDB
+          Properties:
+            # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-dynamodb.html
+            Stream: !GetAtt DynamoDBTable.StreamArn
+            Enabled: true
+            BatchSize: 5
+            StartingPosition: LATEST
+            BisectBatchOnFunctionError: true
+            FilterCriteria:
+              Filters:
+                # https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html#filtering-sam
+                - Pattern: '{"eventName": [{ "anything-but": ["REMOVE"] }], "dynamodb":{ "Keys": { "pk": { "S": [{ "prefix": "MSG#" }] } } }}'
+  LambdaLogGroup:
+    # Set the log retention
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: "/aws/lambda/cruddur-messaging-stream"
+      RetentionInDays: 1
+  ExecutionRole:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "LambdaExecutionPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "logs:CreateLogGroup"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Effect: "Allow"
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LambdaLogGroup}:*"
+              - Effect: "Allow"
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  - dynamodb:DescribeStream
+                  - dynamodb:GetRecords
+                  - dynamodb:GetShardIterator
+                  - dynamodb:ListStreams
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:PutItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*/stream/*
