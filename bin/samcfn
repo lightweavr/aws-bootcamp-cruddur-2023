@@ -3,10 +3,7 @@ set -e # stop the execution of the script if it fails
 
 ARTIFACT_BUCKET="lightweaver-cfn-artifacts"
 REGION=${AWS_DEFAULT_REGION}
-
-ABS_PATH=$(readlink -f "$0")
-BIN_PATH=$(dirname "$ABS_PATH")
-PROJECT_PATH=$(dirname "$BIN_PATH")
+FUNC_DIR="${GITPOD_REPO_ROOT}/lambdas/"
 
 ACTION=$1; shift
 TARGET=$1; shift
@@ -15,15 +12,13 @@ TMP_BUILD_DIR=/tmp/aws-sam/${TARGET}build/
 TMP_PACKAGED_TEMPLATE_PATH=/tmp/aws-sam/${TARGET}.yml
 mkdir -p $TMP_BUILD_DIR
 
-SAM_PATH="${PROJECT_PATH}/aws/sam/${TARGET}.yml"
+SAM_PATH="${GITPOD_REPO_ROOT}/aws/sam/${TARGET}.yml"
 
 if [ ! -e "${SAM_PATH}" ];
 then echo "${SAM_PATH} doesn't exist, exiting"
 exit 1
 fi
 
-FUNC_DIR="/workspace/aws-bootcamp-cruddur-2023/lambda/cruddur-messaging-stream/"
-PACKAGED_TEMPLATE_PATH="/workspace/aws-bootcamp-cruddur-2023/.aws-sam/build/packaged.yaml"
 
 function build() {
     sam validate -t $SAM_PATH
@@ -55,7 +50,7 @@ function deploy() {
     --s3-bucket $ARTIFACT_BUCKET \
     --s3-prefix "$TARGET" \
     --template-file $SAM_PATH \
-    --stack-name "Crd${TARGET}" \
+    --stack-name "CrdSam${TARGET}" \
     --no-execute-changeset \
     --capabilities "CAPABILITY_NAMED_IAM"
     # --template-file $TMP_PACKAGED_TEMPLATE_PATH  \
