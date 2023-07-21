@@ -1,0 +1,69 @@
+#! /usr/bin/env bash
+set -e # stop the execution of the script if it fails
+
+ARTIFACT_BUCKET="lightweaver-cfn-artifacts"
+REGION=${AWS_DEFAULT_REGION}
+
+ABS_PATH=$(readlink -f "$0")
+BIN_PATH=$(dirname "$ABS_PATH")
+PROJECT_PATH=$(dirname "$BIN_PATH")
+
+ACTION=$1; shift
+TARGET=$1; shift
+
+TMP_BUILD_DIR=/tmp/aws-sam/${TARGET}build/
+TMP_PACKAGED_TEMPLATE_PATH=/tmp/aws-sam/${TARGET}.yml
+mkdir -p $TMP_BUILD_DIR
+
+SAM_PATH="${PROJECT_PATH}/aws/sam/${TARGET}.yml"
+
+if [ ! -e "${SAM_PATH}" ];
+then echo "${SAM_PATH} doesn't exist, exiting"
+exit 1
+fi
+
+FUNC_DIR="/workspace/aws-bootcamp-cruddur-2023/lambda/cruddur-messaging-stream/"
+PACKAGED_TEMPLATE_PATH="/workspace/aws-bootcamp-cruddur-2023/.aws-sam/build/packaged.yaml"
+
+function build() {
+    sam validate -t $SAM_PATH
+
+    # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-build.html
+    sam build \
+    --use-container \
+    --region $REGION \
+    --template $SAM_PATH \
+    --base-dir $FUNC_DIR \
+    --build-dir $TMP_BUILD_DIR
+}
+
+function package() {
+    # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-package.html
+    sam package \
+    --region $REGION \
+    --s3-bucket $ARTIFACT_BUCKET \
+    --s3-prefix "$TARGET" \
+    --output-template-file $TMP_PACKAGED_TEMPLATE_PATH \
+    --template-file $SAM_PATH
+
+}
+
+function deploy() {
+    # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-deploy.html
+    sam deploy \
+    --region $REGION \
+    --s3-bucket $ARTIFACT_BUCKET \
+    --s3-prefix "$TARGET" \
+    --template-file $SAM_PATH \
+    --stack-name "Crd${TARGET}" \
+    --no-execute-changeset \
+    --capabilities "CAPABILITY_NAMED_IAM"
+    # --template-file $TMP_PACKAGED_TEMPLATE_PATH  \
+
+}
+
+case $ACTION in
+    "b"|"build") build "${TARGET}" ;;
+    "d"|"deploy") deploy "${TARGET}" ;;
+    *) echo "Invalid parameter" ;;
+esac
