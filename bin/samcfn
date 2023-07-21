@@ -21,7 +21,7 @@ fi
 
 
 function build() {
-    sam validate -t $SAM_PATH
+    sam validate -t $SAM_PATH --lint
 
     # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-build.html
     sam build \
