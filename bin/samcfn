@@ -9,7 +9,7 @@ ACTION=$1; shift
 TARGET=$1; shift
 
 TMP_BUILD_DIR=/tmp/aws-sam/${TARGET}build/
-TMP_PACKAGED_TEMPLATE_PATH=/tmp/aws-sam/${TARGET}.yml
+TMP_PACKAGED_TEMPLATE_PATH=${TMP_BUILD_DIR}/template.yaml
 mkdir -p $TMP_BUILD_DIR
 
 SAM_PATH="${GITPOD_REPO_ROOT}/aws/sam/${TARGET}.yml"
@@ -40,7 +40,6 @@ function package() {
     --s3-prefix "$TARGET" \
     --output-template-file $TMP_PACKAGED_TEMPLATE_PATH \
     --template-file $SAM_PATH
-
 }
 
 function deploy() {
@@ -49,16 +48,18 @@ function deploy() {
     --region $REGION \
     --s3-bucket $ARTIFACT_BUCKET \
     --s3-prefix "$TARGET" \
-    --template-file $SAM_PATH \
+    --template-file $TMP_PACKAGED_TEMPLATE_PATH \
     --stack-name "CrdSam${TARGET}" \
-    --no-execute-changeset \
     --capabilities "CAPABILITY_NAMED_IAM"
-    # --template-file $TMP_PACKAGED_TEMPLATE_PATH  \
-
+    # --no-execute-changeset \
 }
 
 case $ACTION in
     "b"|"build") build "${TARGET}" ;;
+    "p"|"package") package "${TARGET}" ;;
     "d"|"deploy") deploy "${TARGET}" ;;
+    "bd")
+        build "${TARGET}"
+        deploy "${TARGET}" ;;
     *) echo "Invalid parameter" ;;
 esac
