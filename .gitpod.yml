@@ -1,6 +1,5 @@
 vscode:
   extensions:
-    - 42Crunch.vscode-openapi
     - cweijan.vscode-postgresql-client2
     - ms-azuretools.vscode-docker
 
@@ -9,12 +8,17 @@ tasks:
       dir: /workspace
     init: |
       mkdir -p $dir/aws-cli
+      mkdir -p $dir/aws-sam
       mkdir -p $dir/bin
       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
       tempdir=$(mktemp -d)
       unzip /tmp/awscliv2.zip -d $tempdir/
       rm -f /tmp/awscliv2.zip
-      $tempdir/aws/install -i /workspace/aws-cli -b /workspace/bin --update
+      $tempdir/aws/install -i $dir/aws-cli -b $dir/bin --update
+      curl "https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip" -o /tmp/awssam.zip
+      tempdir=$(mktemp -d)
+      unzip awssam.zip -d $tempdir/
+      $tempdir/install -i $dir/aws-sam -b $dir/bin --update
       pip install cfn-lint
     command: |
       complete -C '/workspace/bin/aws_completer' aws
@@ -38,12 +42,12 @@ tasks:
       exit
   - name: Setup environment files
     command: |
-      /workspace/aws-bootcamp-cruddur-2023/bin/generate-env backend
-      /workspace/aws-bootcamp-cruddur-2023/bin/generate-env frontend
+      $GITPOD_REPO_ROOT/bin/generate-env backend
+      $GITPOD_REPO_ROOT/bin/generate-env frontend
       exit
   - name: Setup CDK requirements
     command: |
-      cd /workspace/aws-bootcamp-cruddur-2023/thumbing-serverless-cdk
+      cd $GITPOD_REPO_ROOT/thumbing-serverless-cdk
       npm i --include=dev
       exit
 ports:
