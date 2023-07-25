@@ -1,4 +1,6 @@
 {
+  "name": "lambda-authorizer",
+  "version": "0.0.1",
   "dependencies": {
     "aws-jwt-verify": "^4.0.0"
   }
