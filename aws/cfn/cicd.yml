@@ -193,15 +193,14 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                   - cloudformation:*
-                  - iam:PassRole
                   - iam:CreateRole
-                  - iam:DetachRolePolicy
-                  - iam:DeleteRolePolicy
-                  - iam:PutRolePolicy
                   - iam:DeleteRole
-                  - iam:AttachRolePolicy
                   - iam:GetRole
                   - iam:PassRole
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
                 Effect: Allow
                 Resource: "*"
         - PolicyName: !Sub ${AWS::StackName}CodePipelineBuildPolicy
