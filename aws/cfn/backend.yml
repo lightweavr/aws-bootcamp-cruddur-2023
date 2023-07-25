@@ -128,7 +128,6 @@ Resources:
       IntegrationType: HTTP_PROXY
       PayloadFormatVersion: 1.0
       IntegrationUri: !GetAtt CloudMapService.Arn
-      # IntegrationUri: arn:aws:servicediscovery:us-west-2:017145807427:service/srv-pflj4kgref5n4cuu
       TimeoutInMillis: 30000
 
   # Presign Lambdas
