@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Presign lambda + JWT Authorizer
+Parameters:
+  MemorySize:
+    Type: Number
+    Default: 128
+    MinValue: 128
+    MaxValue: 1024
+  Timeout:
+    Type: Number
+    Default: 3
+  UploadBucket:
+    Type: String
+    Default: cpbc-lightweaver-ca-uploaded-avatars
+
+Resources:
+  Lambda:
+    # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Generates a presigned S3 URL for file uploads
+      CodeUri: cruddur-avatar-presigned-s3-url
+      PackageType: Zip
+      Handler: function.handler
+      Runtime: ruby2.7
+      Role: !GetAtt ExecutionRole.Arn
+      MemorySize: !Ref MemorySize
+      Timeout: !Ref Timeout
+      Environment:
+        Variables:
+          UPLOADS_BUCKET_NAME: !Ref UploadBucket
+
+  # JwtGemLayer:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     CompatibleArchitectures:
+  #       - x86_64
+  #     CompatibleRuntimes:
+  #       - ruby2.7
+  #     ContentUri: String | LayerContent
+  #     Description: Layer with the JWT Rubygem
+  #     LayerName: jwt-rubygem
+  #     LicenseInfo: MIT
+  #     RetentionPolicy: Delete
+
+  LogGroup:
+    # Set the log retention
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${Lambda}"
+      RetentionInDays: 7
+
+  ExecutionRole:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "LambdaExecutionPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*"
+              - Effect: "Allow"
+                Action:
+                  - s3:PutObject
+                Resource: !Sub arn:aws:s3:::${UploadBucket}/*
