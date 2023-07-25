@@ -1,8 +1,8 @@
 # frozen_string_literal: true
+# Update with `bundle update`
 
 source "https://rubygems.org"
 
-# gem "rails"
 gem "aws-sdk-s3"
-gem "ox"
+# gem "ox"
 gem "jwt"
