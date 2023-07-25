@@ -31,19 +31,6 @@ Resources:
         Variables:
           UPLOADS_BUCKET_NAME: !Ref UploadBucket
 
-  # JwtGemLayer:
-  #   Type: AWS::Serverless::LayerVersion
-  #   Properties:
-  #     CompatibleArchitectures:
-  #       - x86_64
-  #     CompatibleRuntimes:
-  #       - ruby2.7
-  #     ContentUri: String | LayerContent
-  #     Description: Layer with the JWT Rubygem
-  #     LayerName: jwt-rubygem
-  #     LicenseInfo: MIT
-  #     RetentionPolicy: Delete
-
   LogGroup:
     # Set the log retention
     Type: AWS::Logs::LogGroup
@@ -76,6 +63,13 @@ Resources:
                 Action:
                   - s3:PutObject
                 Resource: !Sub arn:aws:s3:::${UploadBucket}/*
+  Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt PresignLambda.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*"
 
 Outputs:
   PresignArn:
