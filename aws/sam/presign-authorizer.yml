@@ -63,3 +63,9 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*"
+
+Outputs:
+  PresignAuthorizerArn:
+    Value: !GetAtt JwtAuthorizerLambda.Arn
+    Export:
+      Name: PresignAuthorizerArn

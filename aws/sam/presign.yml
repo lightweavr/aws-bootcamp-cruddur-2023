@@ -15,7 +15,7 @@ Parameters:
     Default: cpbc-lightweaver-ca-uploaded-avatars
 
 Resources:
-  Lambda:
+  PresignLambda:
     # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
     Type: AWS::Serverless::Function
     Properties:
@@ -48,7 +48,7 @@ Resources:
     # Set the log retention
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${Lambda}"
+      LogGroupName: !Sub "/aws/lambda/${PresignLambda}"
       RetentionInDays: 7
 
   ExecutionRole:
@@ -76,3 +76,9 @@ Resources:
                 Action:
                   - s3:PutObject
                 Resource: !Sub arn:aws:s3:::${UploadBucket}/*
+
+Outputs:
+  PresignArn:
+    Value: !GetAtt PresignLambda.Arn
+    Export:
+      Name: PresignArn
