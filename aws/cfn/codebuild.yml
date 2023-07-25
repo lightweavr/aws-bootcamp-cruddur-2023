@@ -48,9 +48,8 @@ Resources:
         PrivilegedMode: true
       LogsConfig:
         CloudWatchLogs:
-          GroupName: !Ref LogGroupPath
+          GroupName: !Ref CodebuildLogStream
           Status: ENABLED
-          StreamName: !Ref BuildName
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Ref BuildSpec
@@ -122,6 +121,13 @@ Resources:
                 Resource:
                   - !Sub arn:aws:s3:::${ArtifactBucketName}
                   - !Sub arn:aws:s3:::${ArtifactBucketName}/*
+  CodebuildLogStream:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
+    # Set the log retention
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "${LogGroupPath}/${BuildName}"
+      RetentionInDays: 7
 
 Outputs:
   CodeBuildProjectName:
