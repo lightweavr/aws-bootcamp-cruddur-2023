@@ -60,6 +60,7 @@ Resources:
     Properties:
       # No CORS configuration, everything is proxied through
       Name: CruddrBackendAPI
+      Description: Front the ECS services & the presigned upload key creator
       ProtocolType: HTTP
       Version: v1
   ApiGatewaySG:
@@ -130,6 +131,75 @@ Resources:
       # IntegrationUri: arn:aws:servicediscovery:us-west-2:017145807427:service/srv-pflj4kgref5n4cuu
       TimeoutInMillis: 30000
 
+  # Presign Lambdas
+  PresignLambda:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-integration.html
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Lambda to generate Presigned S3 URLs for upload
+      IntegrationMethod: POST
+      IntegrationType: AWS_PROXY
+      PayloadFormatVersion: 2.0
+      IntegrationUri: !Join
+        - ""
+        - - "arn:"
+          - !Ref "AWS::Partition"
+          - ":apigateway:"
+          - !Ref "AWS::Region"
+          - ":lambda:path/2015-03-31/functions/"
+          - !ImportValue PresignArn
+          - /invocations
+      TimeoutInMillis: 30000
+  PresignAuthorizer:
+    Type: AWS::ApiGatewayV2::Authorizer
+    Properties:
+      ApiId: !Ref ApiGateway
+      AuthorizerPayloadFormatVersion: "2.0"
+      AuthorizerResultTtlInSeconds: 300
+      AuthorizerType: REQUEST
+      AuthorizerUri: !Join
+        - ""
+        - - "arn:"
+          - !Ref "AWS::Partition"
+          - ":apigateway:"
+          - !Ref "AWS::Region"
+          - ":lambda:path/2015-03-31/functions/"
+          - !ImportValue PresignAuthorizerArn
+          - /invocations
+      EnableSimpleResponses: true
+      IdentitySource:
+        - $request.header.Authorization
+      Name: jwt-authorizer
+
+  PresignRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref PresignAuthorizer
+      RouteKey: POST /avatars/upload_presign_key
+      Target: !Sub integrations/${PresignLambda}
+
+  PresignOptionsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      AuthorizationType: NONE
+      RouteKey: OPTIONS /avatars/upload_presign_key
+      Target: !Sub integrations/${PresignLambda}
+
+  BackendDomainName:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-domainname.html
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
+      DomainNameConfigurations:
+        - EndpointType: REGIONAL
+          CertificateArn: !Ref BackendCertificate
+          CertificateName: BackendCertificate
+          SecurityPolicy: TLS_1_2
+
   BackendCertificate:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-certificatemanager-certificate.html
     Type: AWS::CertificateManager::Certificate
@@ -139,6 +209,54 @@ Resources:
       DomainValidationOptions:
         - DomainName: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
           HostedZoneId: !Ref HostedZoneID
+
+  MapDnsNameToApi:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      ApiId: !Ref ApiGateway
+      DomainName: !Ref BackendDomainName
+      Stage: !Ref DefaultApiGatewayStage
+
+  DomainIPv4Alias:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneID
+      Name: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt BackendDomainName.RegionalDomainName
+        HostedZoneId: !GetAtt BackendDomainName.RegionalHostedZoneId
+
+  DomainIPv6Alias:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneID
+      Name: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt BackendDomainName.RegionalDomainName
+        HostedZoneId: !GetAtt BackendDomainName.RegionalHostedZoneId
+
+  DefaultApiGatewayStage:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-stage.html
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      AccessLogSettings:
+        DestinationArn: !GetAtt LogGroup.Arn
+        Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+      ApiId: !Ref ApiGateway
+      AutoDeploy: true
+      Description: Default stage
+      StageName: $default
+
+  LogGroup:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/cruddur/api-gateway/${ApiGateway}"
+      RetentionInDays: 7
 
 Outputs:
   ClusterName:
