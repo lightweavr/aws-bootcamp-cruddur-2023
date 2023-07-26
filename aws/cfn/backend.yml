@@ -20,39 +20,6 @@ Parameters:
     Default: Z011980921HYJG4UHJ71K
 
 Resources:
-  # Backend on Fargate
-  EcsCluster:
-    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-cluster.html
-    Type: AWS::ECS::Cluster
-    Properties:
-      ClusterName: !Sub "${AWS::StackName}EcsCluster"
-      CapacityProviders:
-        - FARGATE_SPOT
-      ClusterSettings:
-        - Name: containerInsights
-          Value: enabled
-      Configuration:
-        ExecuteCommandConfiguration:
-          Logging: DEFAULT
-      ServiceConnectDefaults:
-        Namespace: !GetAtt CloudMapNamespace.Arn
-  EcsClusterSG:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: !Sub "${AWS::StackName}ServSG"
-      GroupDescription: Security for Fargate Services for Cruddur
-      VpcId:
-        Fn::ImportValue: !Sub ${NetworkingStack}VpcId
-      # No egress = All traffic allowed
-      # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html#aws-properties-ec2-security-group--examples--Remove_the_default_rule
-      # Allow all traffic from API Gateway SG
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          SourceSecurityGroupId: !GetAtt ApiGatewaySG.GroupId
-          FromPort: 4567
-          ToPort: 4567
-          Description: API Gateway Traffic
-
   # Ingress through API Gateway
   ApiGateway:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-api.html
@@ -258,14 +225,14 @@ Resources:
       RetentionInDays: 7
 
 Outputs:
-  ClusterName:
-    Value: !Ref EcsCluster
+  ApiGatewaySG:
+    Value: !GetAtt ApiGatewaySG.GroupId
     Export:
-      Name: !Sub "${AWS::StackName}ClusterName"
-  EcsClusterSG:
-    Value: !GetAtt EcsClusterSG.GroupId
+      Name: !Sub "${AWS::StackName}ApiGatewaySGId"
+  CloudMapServiceNamespace:
+    Value: !GetAtt CloudMapNamespace.Arn
     Export:
-      Name: !Sub "${AWS::StackName}EcsClusterSGId"
+      Name: !Sub "${AWS::StackName}CloudMapServiceNamespace"
   CloudMapServiceRegistry:
     Value: !GetAtt CloudMapService.Arn
     Export:
