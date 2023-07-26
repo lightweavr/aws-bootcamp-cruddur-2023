@@ -1,5 +1,9 @@
 The `cfn/` and `sam/` folders contain bootstrap scripts to setup cruddur.
 
+`bin/cfn` and `bin/samcfn` are helper scripts to trigger CloudFormation and SAM builds respectively
+
+They are currently hard0coded to use the `lightweaver-cfn-artifacts` S3 bucket as an upload target.
+
 ## Prereqs
 ### DNS
 Create a Hosted Zone in Route 53 for the domain name
@@ -16,7 +20,7 @@ These are all stored as SecureStrings in SSM
 ## CDK Managed
 Thumbnail creation is managed by CDK, check the folder `thumbing-serverless-cdk`.
 
-The S3 bucket created by this is used in sam/presign.yml
+The S3 bucket created by this is hardcoded in sam/presign.yml
 
 ## Unmanaged
 * ECR repo creation
@@ -24,13 +28,21 @@ The S3 bucket created by this is used in sam/presign.yml
 * Codestar confirmation with Github
 
 ## Turnup order
-1. `cfn networking`
-2. `cfn frontend`
-3. `samcfn bd ddb`
-4. `samcfn bd presign-authorizer`
-5. `samcfn bd presign`
-6. `cfn backend`
-7. `cfn service`
-8. `cfn db`
-9. `cfn cicd`
-10. `samcfn bd user-confirm`
+1. No dependencies:
+```
+cfn networking
+cfn frontend
+samcfn bd ddb
+samcfn bd presign-authorizer
+samcfn bd presign
+samcfn bd user-confirm
+```
+2. `cfn backend`
+3. `cfn db`
+4. `cfn service`
+5. `cfn cicd`
+
+## Post Turnup
+1. [Approve the codestar connection](https://us-west-2.console.aws.amazon.com/codesuite/settings/connections)
+2. Push a codepipeline build to populate the frontend bucket
+3. Populate the Cruddur database
