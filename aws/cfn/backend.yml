@@ -15,6 +15,10 @@ Parameters:
     Type: String
     Description: This is our base layer of networking components eg. VPC, Subnets
     Default: Cruddurnetworking
+  FrontendStack:
+    Type: String
+    Description: This is our base layer of networking components eg. VPC, Subnets
+    Default: Cruddurfrontend
   HostedZoneID:
     Type: AWS::Route53::HostedZone::Id
     Default: Z011980921HYJG4UHJ71K
@@ -159,7 +163,8 @@ Resources:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-domainname.html
     Type: AWS::ApiGatewayV2::DomainName
     Properties:
-      DomainName: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
+      DomainName:
+        !Join [., [api, Fn::ImportValue: !Sub "${FrontendStack}DNSName"]]
       DomainNameConfigurations:
         - EndpointType: REGIONAL
           CertificateArn: !Ref BackendCertificate
@@ -170,10 +175,12 @@ Resources:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-certificatemanager-certificate.html
     Type: AWS::CertificateManager::Certificate
     Properties:
-      DomainName: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
+      DomainName:
+        !Join [., [api, Fn::ImportValue: !Sub "${FrontendStack}DNSName"]]
       ValidationMethod: DNS
       DomainValidationOptions:
-        - DomainName: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
+        - DomainName:
+            !Join [., [api, Fn::ImportValue: !Sub "${FrontendStack}DNSName"]]
           HostedZoneId: !Ref HostedZoneID
 
   MapDnsNameToApi:
@@ -188,7 +195,7 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref HostedZoneID
-      Name: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
+      Name: !Join [., [api, Fn::ImportValue: !Sub "${FrontendStack}DNSName"]]
       Type: A
       AliasTarget:
         DNSName: !GetAtt BackendDomainName.RegionalDomainName
@@ -199,7 +206,7 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref HostedZoneID
-      Name: !Join [., [api, !ImportValue CrudderfrontendDNSName]]
+      Name: !Join [., [api, Fn::ImportValue: !Sub "${FrontendStack}DNSName"]]
       Type: AAAA
       AliasTarget:
         DNSName: !GetAtt BackendDomainName.RegionalDomainName
