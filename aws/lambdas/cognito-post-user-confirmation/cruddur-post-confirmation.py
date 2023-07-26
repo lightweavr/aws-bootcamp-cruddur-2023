@@ -1,6 +1,13 @@
+import boto3
 import json
 import psycopg2
 import os
+
+client = boto3.client('ssm')
+params = {}
+for param in client.get_parameters(Names=["/cruddur/db/password", "/cruddur/db/endpoint", "/cruddur/db/user"], WithDecryption=True).get("Parameters"):
+    name = param["Name"].split("/")[-1]
+    params[name] = param["Value"]
 
 
 def lambda_handler(event, context):
@@ -8,7 +15,7 @@ def lambda_handler(event, context):
     print("userAttributes")
     print(user)
     try:
-        conn = psycopg2.connect(os.getenv("CONNECTION_URL"))
+        conn = psycopg2.connect(dbname="cruddur", user=params["user"], password=params["password"], host=params["endpoint"], port=5432)
         cur = conn.cursor()
         cur.execute(
             "INSERT INTO public.users (display_name, email, handle, cognito_user_id) VALUES(%s, %s, %s, %s)",
