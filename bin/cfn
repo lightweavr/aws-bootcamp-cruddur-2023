@@ -38,7 +38,7 @@ cfn-lint "$CFN_PATH"
 if [ ! -z "$*" ]
 then
   aws cloudformation deploy \
-    --stack-name "Crudder$TARGET" \
+    --stack-name "Cruddur$TARGET" \
     --s3-bucket $BUCKET \
     --s3-prefix "$TARGET" \
     --region "$REGION" \
@@ -49,7 +49,7 @@ then
     --parameter-overrides "$@"
 else
   aws cloudformation deploy \
-    --stack-name "Crudder$TARGET" \
+    --stack-name "Cruddur$TARGET" \
     --s3-bucket $BUCKET \
     --s3-prefix "$TARGET" \
     --region "$REGION" \
