@@ -93,7 +93,7 @@ Resources:
                 Effect: Allow
                 Resource:
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LogGroupPath}
-                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LogGroupPath}:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LogGroupPath}*:*
         - PolicyName: !Sub ${AWS::StackName}CodebuildReport
           PolicyDocument:
             Version: "2012-10-17"
