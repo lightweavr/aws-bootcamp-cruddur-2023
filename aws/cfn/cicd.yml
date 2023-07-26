@@ -10,9 +10,6 @@ Parameters:
   GithubRepo:
     Type: String
     Default: "lightweavr/aws-bootcamp-cruddur-2023"
-  ClusterStack:
-    Type: String
-    Default: Crudderbackend
   ServiceStack:
     Type: String
     Default: Crudderservice
@@ -132,7 +129,7 @@ Resources:
                 # In Minutes
                 DeploymentTimeout: "10"
                 ClusterName:
-                  Fn::ImportValue: !Sub ${ClusterStack}ClusterName
+                  Fn::ImportValue: !Sub ${ServiceStack}ClusterName
                 ServiceName:
                   Fn::ImportValue: !Sub ${ServiceStack}ServiceName
             - Name: Deploy-Frontend

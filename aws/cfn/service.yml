@@ -321,3 +321,7 @@ Outputs:
     Value: !GetAtt CruddurService.Name
     Export:
       Name: !Sub "${AWS::StackName}ServiceName"
+  ClusterName:
+    Value: !Ref EcsCluster
+    Export:
+      Name: !Sub "${AWS::StackName}ClusterName"
