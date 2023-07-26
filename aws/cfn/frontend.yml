@@ -8,9 +8,6 @@ Parameters:
     Type: String
     # Ideally this could be managed, but the stack is in us-west-2, and cloudfront requires ACM certs be in us-east-1
     Default: arn:aws:acm:us-east-1:017145807427:certificate/5d7b917c-2a9e-49ee-ad40-74767877c64c
-  StaticSiteBucketName:
-    Type: String
-    Default: cpbc-lightweaver-ca
   DNSName:
     Type: String
     Default: cpbc.lightweaver.ca
@@ -41,7 +38,6 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      BucketName: !Ref StaticSiteBucketName
       PublicAccessBlockConfiguration:
         BlockPublicPolicy: true
         BlockPublicAcls: true
@@ -111,7 +107,7 @@ Resources:
         PriceClass: PriceClass_100
         # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-origin.html
         Origins:
-          - DomainName: !GetAtt StaticSiteBucket.RegionalDomainName # !Sub ${StaticSiteBucket}.s3.${AWS::Region}.amazonaws.com
+          - DomainName: !GetAtt StaticSiteBucket.RegionalDomainName
             Id: StaticSiteBucketOrigin
             OriginAccessControlId: !Ref CloudFrontOriginAccessControl
             S3OriginConfig: {}
