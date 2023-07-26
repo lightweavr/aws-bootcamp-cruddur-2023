@@ -9,11 +9,11 @@ Parameters:
   NetworkingStack:
     Type: String
     Description: This is our base layer of networking components eg. VPC, Subnets
-    Default: Cruddernetworking
+    Default: Cruddurnetworking
   ServiceStack:
     Type: String
     Description: This is our FargateCluster
-    Default: Crudderservice
+    Default: Cruddurservice
   BackupRetentionPeriod:
     Type: Number
     Default: 35

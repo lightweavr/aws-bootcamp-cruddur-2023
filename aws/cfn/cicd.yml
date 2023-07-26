@@ -12,10 +12,10 @@ Parameters:
     Default: "lightweavr/aws-bootcamp-cruddur-2023"
   ServiceStack:
     Type: String
-    Default: Crudderservice
+    Default: Cruddurservice
   FrontendStack:
     Type: String
-    Default: Crudderfrontend
+    Default: Cruddurfrontend
 Resources:
   CodeBuildBackendImageStack:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-stack.html
