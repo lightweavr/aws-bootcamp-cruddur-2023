@@ -104,7 +104,7 @@ Resources:
       # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-distributionconfig.html
       DistributionConfig:
         Aliases:
-          - !Sub ${DNSName}
+          - !Ref DNSName
         Comment: Frontend React Js for Cruddur
         Enabled: true
         IPV6Enabled: true
