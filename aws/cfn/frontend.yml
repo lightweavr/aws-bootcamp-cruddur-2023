@@ -43,6 +43,12 @@ Resources:
         BlockPublicAcls: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+            Status: Enabled
+            ExpirationInDays: 21
 
   # Cloudfront
   CloudFrontOriginAccessControl:
