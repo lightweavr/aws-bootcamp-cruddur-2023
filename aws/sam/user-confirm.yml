@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Lambda that gets run after a user confirms their email account in Cognito
+Parameters:
+  MemorySize:
+    Type: Number
+    Default: 128
+    MinValue: 128
+    MaxValue: 1024
+  Timeout:
+    Type: Number
+    Default: 3
+
+Resources:
+  ConfirmationLambda:
+    # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Add user details to cruddur DB
+      CodeUri: cognito-post-user-confirmation
+      PackageType: Zip
+      Handler: cruddur-post-confirmation.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt ExecutionRole.Arn
+      MemorySize: !Ref MemorySize
+      Timeout: !Ref Timeout
+      Layers:
+        # psycopg2 built for Lambda
+        - arn:aws:lambda:us-west-2:898466741470:layer:psycopg2-py38:1
+
+  LambdaLogGroup:
+    # Set the log retention
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ConfirmationLambda}"
+      RetentionInDays: 7
+
+  ExecutionRole:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "ConfirmationLambdaExecutionRole"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: LogEvents
+                Effect: "Allow"
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*"
+              - Sid: VpcAccess
+                Effect: "Allow"
+                Action:
+                  - ec2:CreateNetworkInterface
+                  - ec2:DeleteNetworkInterface
+                  - ec2:DescribeNetworkInterfaces
+                Resource: "*"
+              - Sid: "SSM"
+                Effect: "Allow"
+                Action:
+                  - "ssm:GetParameters"
+                  - "ssm:GetParameter"
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cruddur/*"
+
+  Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt ConfirmationLambda.Arn
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*"
