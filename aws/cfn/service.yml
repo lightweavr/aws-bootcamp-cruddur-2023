@@ -103,7 +103,7 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
           SecurityGroups:
-            Fn::ImportValue: !Sub "${BackendStack}ServiceSGId"
+            - Fn::ImportValue: !Sub "${BackendStack}ServiceSGId"
           Subnets:
             Fn::Split:
               - ","
