@@ -87,23 +87,6 @@ Resources:
       ServiceConnectDefaults:
         Namespace:
           Fn::ImportValue: !Sub ${BackendStack}CloudMapServiceNamespace
-  EcsClusterSG:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: !Sub "${AWS::StackName}ServSG"
-      GroupDescription: Security for Fargate Services for Cruddur
-      VpcId:
-        Fn::ImportValue: !Sub ${NetworkingStack}VpcId
-      # No egress = All traffic allowed
-      # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html#aws-properties-ec2-security-group--examples--Remove_the_default_rule
-      # Allow all traffic from API Gateway SG
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          SourceSecurityGroupId:
-            Fn::ImportValue: !Sub ${BackendStack}ApiGatewaySGId
-          FromPort: 4567
-          ToPort: 4567
-          Description: API Gateway Traffic
 
   CruddurService:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html
@@ -119,7 +102,8 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          SecurityGroups: !GetAtt EcsClusterSG.GroupId
+          SecurityGroups:
+            Fn::ImportValue: !Sub "${BackendStack}ServiceSGId"
           Subnets:
             Fn::Split:
               - ","

@@ -10,10 +10,10 @@ Parameters:
     Type: String
     Description: This is our base layer of networking components eg. VPC, Subnets
     Default: Cruddurnetworking
-  ServiceStack:
+  BackendStack:
     Type: String
     Description: This is our FargateCluster
-    Default: Cruddurservice
+    Default: Cruddurbackend
   BackupRetentionPeriod:
     Type: Number
     Default: 35
@@ -49,7 +49,7 @@ Resources:
       SecurityGroupIngress:
         - IpProtocol: tcp
           SourceSecurityGroupId:
-            Fn::ImportValue: !Sub ${ClusterStack}EcsClusterSGId
+            Fn::ImportValue: !Sub "${BackendStack}ServiceSGId"
           FromPort: 5432
           ToPort: 5432
           Description: Default Postgres Port

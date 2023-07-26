@@ -72,6 +72,23 @@ Resources:
       SubnetIds:
         !Split [",", Fn::ImportValue: !Sub "${NetworkingStack}PublicSubnetIds"]
 
+  ServiceSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${AWS::StackName}ServSG"
+      GroupDescription: Security group for services receiving traffic _from_ API Gateway
+      VpcId:
+        Fn::ImportValue: !Sub ${NetworkingStack}VpcId
+      # No egress = All traffic allowed
+      # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html#aws-properties-ec2-security-group--examples--Remove_the_default_rule
+      # Allow all traffic from API Gateway SG
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          SourceSecurityGroupId: !GetAtt ApiGatewaySG.GroupId
+          FromPort: 4567
+          ToPort: 4567
+          Description: API Gateway Traffic
+
   # Service Discovery through CloudMap
   CloudMapNamespace:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicediscovery-httpnamespace.html
@@ -232,10 +249,10 @@ Resources:
       RetentionInDays: 7
 
 Outputs:
-  ApiGatewaySG:
-    Value: !GetAtt ApiGatewaySG.GroupId
+  ServiceSG:
+    Value: !GetAtt ServiceSG.GroupId
     Export:
-      Name: !Sub "${AWS::StackName}ApiGatewaySGId"
+      Name: !Sub "${AWS::StackName}ServiceSGId"
   CloudMapServiceNamespace:
     Value: !GetAtt CloudMapNamespace.Arn
     Export:
