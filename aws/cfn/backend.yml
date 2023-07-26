@@ -14,7 +14,7 @@ Parameters:
   NetworkingStack:
     Type: String
     Description: This is our base layer of networking components eg. VPC, Subnets
-    Default: Cruddernetworking
+    Default: Cruddurnetworking
   HostedZoneID:
     Type: AWS::Route53::HostedZone::Id
     Default: Z011980921HYJG4UHJ71K
