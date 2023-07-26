@@ -60,7 +60,7 @@ Resources:
       # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-originaccesscontrol-originaccesscontrolconfig.html
       OriginAccessControlConfig:
         Description: String
-        Name: !Sub Cloudfront S3 OriginAccessControl for ${StaticSiteBucket}
+        Name: !Sub S3 OAC for ${StaticSiteBucket}
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
