@@ -15,9 +15,9 @@ tasks:
       unzip /tmp/awscliv2.zip -d $tempdir/
       rm -f /tmp/awscliv2.zip
       $tempdir/aws/install -i $dir/aws-cli -b $dir/bin --update
-      curl "https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip" -o /tmp/awssam.zip
+      curl -L "https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip" -o /tmp/awssam.zip
       tempdir=$(mktemp -d)
-      unzip awssam.zip -d $tempdir/
+      unzip /tmp/awssam.zip -d $tempdir/
       $tempdir/install -i $dir/aws-sam -b $dir/bin --update
       pip install cfn-lint
     command: |
