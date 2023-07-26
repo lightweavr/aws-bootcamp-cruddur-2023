@@ -54,13 +54,13 @@ Resources:
   CloudFrontOriginAccessControl:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudfront-originaccesscontrol.html
     Type: AWS::CloudFront::OriginAccessControl
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
       # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-originaccesscontrol-originaccesscontrolconfig.html
       OriginAccessControlConfig:
         Description: String
-        Name: Cloudfront S3 OriginAccessControl
+        Name: !Sub Cloudfront S3 OriginAccessControl for ${StaticSiteBucket}
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
@@ -98,7 +98,7 @@ Resources:
   Distribution:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudfront-distribution.html
     Type: AWS::CloudFront::Distribution
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
       # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-distributionconfig.html
