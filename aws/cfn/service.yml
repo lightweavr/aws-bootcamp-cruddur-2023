@@ -124,10 +124,11 @@ Resources:
               - Port: !Ref ContainerPort
       ServiceRegistries:
         - RegistryArn:
-            Fn::ImportValue: !Sub ${BackendStack}CloudMapServiceRegistry
-      #    Port: !Ref ContainerPort
-      #    ContainerName: 'backend-flask'
-      #    ContainerPort: !Ref ContainerPort
+            arn:aws:servicediscovery:us-west-2:017145807427:service/srv-6p7zbces7bauprdu
+            # Fn::ImportValue: !Sub ${BackendStack}CloudMapServiceRegistry
+          Port: !Ref ContainerPort
+          # ContainerName: "backend-flask"
+          # ContainerPort: !Ref ContainerPort
       ServiceName: !Ref ServiceName
       TaskDefinition: !Ref TaskDefinition
 

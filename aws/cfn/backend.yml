@@ -96,13 +96,40 @@ Resources:
     Properties:
       Description: Namespace for crudur backend registration
       Name: CruddurBackendNamespace
+
+  # CruddurBackendServiceMap:
   CloudMapService:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicediscovery-service.html
-    Type: "AWS::ServiceDiscovery::Service"
+    Type: AWS::ServiceDiscovery::Service
     Properties:
-      Description: Service based on a public DNS namespace
-      Name: CruddurBackendService
+      Description: Service based on a HTTP namespace
       NamespaceId: !Ref CloudMapNamespace
+      # DnsConfig:
+      #   DnsRecords:
+      #     - TTL: 30
+      #       Type: SRV
+      #   RoutingPolicy: WEIGHTED
+      # Type: HTTP
+
+  TestPrivateNamespace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: TestPrivateNamespace
+      Vpc:
+        Fn::ImportValue: !Sub ${NetworkingStack}VpcId
+
+  TestCruddurBackendServiceMap:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicediscovery-service.html
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Description: Service based on a HTTP namespace
+      NamespaceId: !Ref TestPrivateNamespace
+      DnsConfig:
+        DnsRecords:
+          - TTL: 30
+            Type: SRV
+        RoutingPolicy: WEIGHTED
+      # Type: HTTP
 
   ApiGatewayRouteToCloudMap:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-integration.html
