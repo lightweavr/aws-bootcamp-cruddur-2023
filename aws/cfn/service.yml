@@ -88,7 +88,7 @@ Resources:
         Namespace:
           Fn::ImportValue: !Sub ${BackendStack}CloudMapServiceNamespace
 
-  CruddurService:
+  CruddurEcsService:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html
     Type: AWS::ECS::Service
     Properties:
@@ -114,7 +114,7 @@ Resources:
       ServiceConnectConfiguration:
         Enabled: true
         Namespace:
-          Fn::ImportValue: !Sub ${BackendStack}CloudMapServiceNamespace
+          Fn::ImportValue: !Sub ${BackendStack}ServiceConnectNamespace
         # TODO - If you want to log
         # LogConfiguration
         Services:
@@ -124,8 +124,7 @@ Resources:
               - Port: !Ref ContainerPort
       ServiceRegistries:
         - RegistryArn:
-            arn:aws:servicediscovery:us-west-2:017145807427:service/srv-6p7zbces7bauprdu
-            # Fn::ImportValue: !Sub ${BackendStack}CloudMapServiceRegistry
+            Fn::ImportValue: !Sub ${BackendStack}CruddurBackendServiceRegistry
           Port: !Ref ContainerPort
           # ContainerName: "backend-flask"
           # ContainerPort: !Ref ContainerPort
@@ -303,7 +302,7 @@ Resources:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 Outputs:
   ServiceName:
-    Value: !GetAtt CruddurService.Name
+    Value: !GetAtt CruddurEcsService.Name
     Export:
       Name: !Sub "${AWS::StackName}ServiceName"
   ClusterName:
