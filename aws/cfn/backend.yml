@@ -90,46 +90,35 @@ Resources:
           Description: API Gateway Traffic
 
   # Service Discovery through CloudMap
-  CloudMapNamespace:
+  ServiceConnectNamespace:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicediscovery-httpnamespace.html
     Type: AWS::ServiceDiscovery::HttpNamespace
     Properties:
       Description: Namespace for crudur backend registration
-      Name: CruddurBackendNamespace
+      Name: CruddurServiceConnectNamespace
 
-  # CruddurBackendServiceMap:
-  CloudMapService:
-    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicediscovery-service.html
-    Type: AWS::ServiceDiscovery::Service
-    Properties:
-      Description: Service based on a HTTP namespace
-      NamespaceId: !Ref CloudMapNamespace
-      # DnsConfig:
-      #   DnsRecords:
-      #     - TTL: 30
-      #       Type: SRV
-      #   RoutingPolicy: WEIGHTED
-      # Type: HTTP
-
-  TestPrivateNamespace:
+  # ECS Service Registry only works with Private DNS
+  CruddurBackendNamespace:
     Type: AWS::ServiceDiscovery::PrivateDnsNamespace
     Properties:
-      Name: TestPrivateNamespace
+      Name: CruddurBackendNamespace
       Vpc:
         Fn::ImportValue: !Sub ${NetworkingStack}VpcId
 
-  TestCruddurBackendServiceMap:
+  CruddurBackendServiceMap:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicediscovery-service.html
     Type: AWS::ServiceDiscovery::Service
     Properties:
-      Description: Service based on a HTTP namespace
-      NamespaceId: !Ref TestPrivateNamespace
+      Description: Cruddur backend
+      NamespaceId: !Ref CruddurBackendNamespace
       DnsConfig:
         DnsRecords:
           - TTL: 30
             Type: SRV
         RoutingPolicy: WEIGHTED
-      # Type: HTTP
+      # Random tip from https://repost.aws/knowledge-center/cloudformation-ecs-service-discovery
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
 
   ApiGatewayRouteToCloudMap:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-integration.html
@@ -142,7 +131,7 @@ Resources:
       IntegrationMethod: ANY
       IntegrationType: HTTP_PROXY
       PayloadFormatVersion: 1.0
-      IntegrationUri: !GetAtt CloudMapService.Arn
+      IntegrationUri: !GetAtt CruddurBackendServiceMap.Arn
       TimeoutInMillis: 30000
 
   # Presign Lambdas
@@ -268,6 +257,14 @@ Resources:
       Description: Default stage
       StageName: $default
 
+  DefaultApiGatewayRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      AuthorizationType: NONE
+      RouteKey: $default
+      Target: !Sub integrations/${ApiGatewayRouteToCloudMap}
+
   LogGroup:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
     Type: AWS::Logs::LogGroup
@@ -280,11 +277,11 @@ Outputs:
     Value: !GetAtt ServiceSG.GroupId
     Export:
       Name: !Sub "${AWS::StackName}ServiceSGId"
-  CloudMapServiceNamespace:
-    Value: !GetAtt CloudMapNamespace.Arn
+  ServiceConnectNamespace:
+    Value: !GetAtt ServiceConnectNamespace.Arn
     Export:
-      Name: !Sub "${AWS::StackName}CloudMapServiceNamespace"
-  CloudMapServiceRegistry:
-    Value: !GetAtt CloudMapService.Arn
+      Name: !Sub "${AWS::StackName}ServiceConnectNamespace"
+  CruddurBackendServiceRegistry:
+    Value: !GetAtt CruddurBackendServiceMap.Arn
     Export:
-      Name: !Sub "${AWS::StackName}CloudMapServiceRegistry"
+      Name: !Sub "${AWS::StackName}CruddurBackendServiceRegistry"
