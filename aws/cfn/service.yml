@@ -86,7 +86,7 @@ Resources:
           Logging: DEFAULT
       ServiceConnectDefaults:
         Namespace:
-          Fn::ImportValue: !Sub ${BackendStack}CloudMapServiceNamespace
+          Fn::ImportValue: !Sub ${BackendStack}ServiceConnectNamespace
 
   CruddurEcsService:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html
