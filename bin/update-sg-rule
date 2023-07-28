@@ -1,4 +1,8 @@
 #! /usr/bin/bash
+set -x
+
+DB_SG_ID=$(aws ec2 describe-security-groups --filters Name=group-name,Values=CruddurdbDatabaseSG --query SecurityGroups[0].GroupId --output text)
+DB_SG_RULE_ID=$(aws ec2 describe-security-group-rules --filters Name=group-id,Values=${DB_SG_ID} --query SecurityGroupRules|jq -r '.[] | select(.IsEgress == false and .CidrIpv4) | .SecurityGroupRuleId')
 
 if [ -z "${DB_SG_ID}" ] || [ -z "${DB_SG_RULE_ID}" ] ; then
     echo Need both DB_SG_ID and DB_SG_RULE_ID to be set, exiting.
@@ -10,3 +14,8 @@ TIMESTAMP=$(TZ='America/Vancouver' date -Iminutes)
 aws --query "Return" ec2 modify-security-group-rules \
     --group-id $DB_SG_ID \
     --security-group-rules "SecurityGroupRuleId=$DB_SG_RULE_ID,SecurityGroupRule={Description=Gitpod/${TIMESTAMP},IpProtocol=tcp,FromPort=5432,ToPort=5432,CidrIpv4=$IP/32}"
+
+USER=$(aws ssm get-parameter --name "/cruddur/db/user" --query Parameter.Value --output text)
+PASSWORD=$(aws ssm get-parameter --name "/cruddur/db/password" --with-decryption --query Parameter.Value --output text)
+ENDPOINT=$(aws ssm get-parameter --name "/cruddur/db/endpoint" --query Parameter.Value --output text)
+export PROD_CONNECTION_URL=postgresql://${USER}:${PASSWORD}@${ENDPOINT}:5432/cruddur
