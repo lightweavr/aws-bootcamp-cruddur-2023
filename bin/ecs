@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 ABS_PATH=$(readlink -f "$0")
 BIN_PATH=$(dirname "$ABS_PATH")
@@ -8,7 +9,7 @@ ACCOUNT_ID="017145807427"
 
 
 function connect() {
-    aws ecs execute-command --region "$AWS_DEFAULT_REGION" --cluster cruddur --task "$(aws ecs list-tasks --cluster cruddur --service-name "$1" |jq .taskArns[0] --raw-output)" --container "$1" --command "/bin/sh" --interactive
+    aws ecs execute-command --region "$AWS_DEFAULT_REGION" --cluster CruddurserviceEcsCluster --task "$(aws ecs list-tasks --cluster CruddurserviceEcsCluster --service-name "$1" |jq .taskArns[0] --raw-output)" --container "$1" --command "/bin/sh" --interactive
 }
 
 function build_prod() {
@@ -65,7 +66,7 @@ function create() {
 
 function deploy() {
     LATEST_TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition "$1" --query 'taskDefinition.taskDefinitionArn' --output text)
-    aws ecs update-service --cluster cruddur --service "$1" --task-definition "$LATEST_TASK_DEFINITION_ARN" --force-new-deployment
+    aws ecs update-service --cluster CruddurserviceEcsCluster --service "$1" --task-definition "$LATEST_TASK_DEFINITION_ARN" --force-new-deployment
 }
 
 function run() {
