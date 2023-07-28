@@ -54,7 +54,7 @@ Resources:
           ToPort: 5432
           Description: Default Postgres Port
         - IpProtocol: tcp
-          CidrIpv4: 127.0.0.1/32
+          CidrIp: 127.0.0.1/32
           FromPort: 5432
           ToPort: 5432
           Description: Remote access template
