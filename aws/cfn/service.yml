@@ -49,10 +49,10 @@ Parameters:
     Default: 4mq8n71ja47g2t9cd616t3p136
   EnvFrontendUrl:
     Type: String
-    Default: "*"
+    Default: "https://cpbc.lightweaver.ca"
   EnvBackendUrl:
     Type: String
-    Default: "*"
+    Default: "https://api.cpbc.lightweaver.ca"
   EnvDdbTableName:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /cruddur/ddb/tablename
