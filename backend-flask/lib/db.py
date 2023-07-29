@@ -3,11 +3,9 @@ import re
 import sys
 from typing import Mapping, Optional
 
-import psycopg2
+import psycopg
 from flask import current_app as app
 from psycopg_pool import ConnectionPool
-
-# psycopg2.sql.SQL
 
 
 class Db:
@@ -27,14 +25,14 @@ class Db:
         try:
             with self.pool.connection() as conn:
                 cur = conn.cursor()
-                cur.execute(psycopg2.sql.SQL(sql), params) # pyre-ignore [6]
+                cur.execute(psycopg.sql.SQL(sql), params) # pyre-ignore [6]
                 if is_returning_id:
                     returning_id = cur.fetchone()[0]
                     conn.commit()
                     return returning_id
                 else:
                     conn.commit()
-        except psycopg2.Error as err:
+        except psycopg.Error as err:
             self.print_sql_err(err)
 
     # when we want to return a json object
@@ -71,7 +69,7 @@ class Db:
             app.logger.debug(f"Running SQL query {sql} with params {params}")
         with self.pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(psycopg2.sql.SQL(sql), params)
+                cur.execute(psycopg.sql.SQL(sql), params)
                 result = cur.fetchone()
                 return result[0]
 
@@ -80,7 +78,7 @@ class Db:
             app.logger.debug(f"Running SQL query {sql}")
         with self.pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(psycopg2.sql.SQL(sql), params)
+                cur.execute(psycopg.sql.SQL(sql), params)
 
     def query_get_handle_from_cognito_id(self, cognito_user_id: str) -> str:
         sql = "select handle from users where cognito_user_id = %(cognito_user_id)s"
@@ -151,7 +149,7 @@ class Db:
         return sql.strip()
 
     @staticmethod
-    def print_sql_err(err: psycopg2.Error) -> None:
+    def print_sql_err(err: psycopg.Error) -> None:
         # get details about the exception
         err_type, err_obj, traceback = sys.exc_info()
 
