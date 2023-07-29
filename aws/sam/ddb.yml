@@ -128,3 +128,10 @@ Resources:
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*/index/*
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*/stream/*
+  DdbTableParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /cruddur/ddb/tablename
+      Type: String
+      Description: Table name of the DDB PrivMsg table
+      Value: !Ref DynamoDBTable
