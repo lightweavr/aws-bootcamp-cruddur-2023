@@ -34,6 +34,10 @@ CREATE TABLE public.activities (
   expires_at timestamp,
   created_at timestamp default current_timestamp NOT NULL
 );
+
+-- Add the postgres_iam user: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.DBAccounts.html#UsingWithRDS.IAMDBAuth.DBAccounts.PostgreSQL
+CREATE USER postgres_iam;
+GRANT rds_iam TO postgres_iam;
 -- DROP TRIGGER IF EXISTS trig_users_updated_at ON users;
 -- DROP TRIGGER IF EXISTS trig_activities_updated_at ON activities;
 -- DROP FUNCTION IF EXISTS func_updated_at();
