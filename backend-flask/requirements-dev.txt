@@ -1,0 +1,4 @@
+-r requirements.txt
+
+pyre-check
+boto3-stubs[essential]
