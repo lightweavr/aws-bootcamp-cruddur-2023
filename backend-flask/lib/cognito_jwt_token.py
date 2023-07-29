@@ -1,16 +1,18 @@
 # Largely copied from https://github.com/cgauge/Flask-AWSCognito/blob/master/flask_awscognito/services/token_service.py
 # Which in turn is copied from https://github.com/awslabs/aws-support-tools/blob/master/Cognito/decode-verify-jwt/decode-verify-jwt.py
 # https://youtu.be/d079jccoG-M?t=676
+import os
 import time
+from functools import partial, wraps
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence
+
 import requests
+from flask import current_app as app
+from flask import g, request
 from jose import jwk, jwt
 from jose.exceptions import JOSEError
 from jose.utils import base64url_decode
-from typing import Any, Callable, Dict, Mapping, Optional, List, Sequence
-from functools import wraps, partial
-from flask import request, g
-import os
-from flask import current_app as app
+
 
 class FlaskAWSCognitoError(Exception):
     pass

@@ -1,10 +1,12 @@
-from psycopg_pool import ConnectionPool
-from flask import current_app as app
-from typing import Mapping, Optional
-import re
 import os
+import re
 import sys
+from typing import Mapping, Optional
+
 import psycopg2
+from flask import current_app as app
+from psycopg_pool import ConnectionPool
+
 # psycopg2.sql.SQL
 
 

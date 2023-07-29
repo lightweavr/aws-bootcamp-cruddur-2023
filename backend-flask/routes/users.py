@@ -1,19 +1,17 @@
 ## flask
-from flask import request, g
-
 ## decorators
 from aws_xray_sdk.core import xray_recorder
-from lib.cognito_jwt_token import jwt_required
+from flask import g, request
 from flask_cors import cross_origin
 
-## services
-from services.users_short import UsersShort
-from services.update_profile import UpdateProfile
-from services.user_activities import UserActivities
-from services.show_activity import ShowActivity
-
+from lib.cognito_jwt_token import jwt_required
 ## helpers
 from lib.helpers import model_json
+from services.show_activity import ShowActivity
+from services.update_profile import UpdateProfile
+from services.user_activities import UserActivities
+## services
+from services.users_short import UsersShort
 
 
 def load(app):
