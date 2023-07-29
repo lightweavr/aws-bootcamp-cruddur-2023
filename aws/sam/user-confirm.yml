@@ -4,12 +4,12 @@ Description: Lambda that gets run after a user confirms their email account in C
 Parameters:
   MemorySize:
     Type: Number
-    Default: 128
+    Default: 1024
     MinValue: 128
     MaxValue: 1024
   Timeout:
     Type: Number
-    Default: 3
+    Default: 5
   NetworkingStack:
     Type: String
     Description: This is our base layer of networking components eg. VPC, Subnets
