@@ -12,6 +12,8 @@ def debug_print(message: str) -> None:
     else:
         print(message)
 
+DDB_TABLE_NAME = os.getenv("CRUDDUR_DDB_TABLE_NAME")
+
 class Ddb:
     def client():
         endpoint_url = os.getenv("AWS_ENDPOINT_URL")
@@ -24,9 +26,8 @@ class Ddb:
 
     def list_message_groups(client, my_user_uuid):
         year = str(datetime.now().year)
-        table_name = "cruddur-messages"
         query_params = {
-            "TableName": table_name,
+            "TableName": DDB_TABLE_NAME,
             "KeyConditionExpression": "pk = :pk AND begins_with(sk,:year)",
             "ScanIndexForward": False,
             "Limit": 20,
@@ -56,9 +57,8 @@ class Ddb:
 
     def list_messages(client, message_group_uuid):
         year = str(datetime.now().year)
-        table_name = "cruddur-messages"
         query_params = {
-            "TableName": table_name,
+            "TableName": DDB_TABLE_NAME,
             "KeyConditionExpression": "pk = :pk AND begins_with(sk,:year)",
             "ScanIndexForward": False,
             "Limit": 20,
@@ -106,8 +106,7 @@ class Ddb:
             "user_handle": {"S": my_user_handle},
         }
         # insert the record into the table
-        table_name = "cruddur-messages"
-        response = client.put_item(TableName=table_name, Item=record)
+        response = client.put_item(TableName=DDB_TABLE_NAME, Item=record)
         # print the response
         debug_print(f"create message: {response}")
         return {
@@ -129,7 +128,6 @@ class Ddb:
         other_user_display_name,
         other_user_handle,
     ) -> str:
-        table_name = "cruddur-messages"
 
         # Check to see if a message group already exists
         # In theory this shouldn't be possible since the UI has a message group ID assigned, but just in case...
@@ -140,7 +138,7 @@ class Ddb:
         existing_group = False
         message_group_uuid = None
         query_params = {
-            "TableName": table_name,
+            "TableName": DDB_TABLE_NAME,
             "KeyConditionExpression": "pk = :pk",
             "FilterExpression": "user_uuid = :other_user_uuid",
             "ProjectionExpression": "message_group_uuid",
@@ -198,10 +196,10 @@ class Ddb:
         }
 
         items = {
-            table_name: [{"PutRequest": {"Item": message}}]
+            DDB_TABLE_NAME: [{"PutRequest": {"Item": message}}]
         }
         if not existing_group:
-            items[table_name].extend([
+            items[DDB_TABLE_NAME].extend([
                 {"PutRequest": {"Item": my_message_group}},
                 {"PutRequest": {"Item": other_message_group}},
             ])
