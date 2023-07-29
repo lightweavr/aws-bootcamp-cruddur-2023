@@ -23,13 +23,7 @@ from lib.cognito_jwt_token import (
     TokenVerifyError,
 )
 
-# HoneyComb
-from opentelemetry import trace
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from lib.honeycomb import init_honeycomb
 
 # Xray
 from aws_xray_sdk.core import xray_recorder
@@ -46,27 +40,18 @@ from flask import got_request_exception
 app = Flask(__name__)
 
 # Initialize tracing and an exporter that can send data to Honeycomb
-provider = TracerProvider()
-processor = BatchSpanProcessor(OTLPSpanExporter())
-provider.add_span_processor(processor)
-
-trace.set_tracer_provider(provider)
-tracer = trace.get_tracer(__name__)
-
-FlaskInstrumentor().instrument_app(app)
-RequestsInstrumentor().instrument()
-
+init_honeycomb(app)
 # Xray
 xray_url = os.getenv("AWS_XRAY_URL")
 xray_recorder.configure(service="backend-flask", dynamic_naming=xray_url)
 XRayMiddleware(app, xray_recorder)
 logging.getLogger("aws_xray_sdk").setLevel(logging.DEBUG)
 
-# Cloudwatch
+# Cloudwatch - because it hooks into the logging framework, no point splitting it out
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 cw_handler = watchtower.CloudWatchLogHandler(
-    log_group="cruddur", log_stream_name="{machine_name}/{program_name}/{logger_name}"
+    log_group="/cruddur/{program_name}/server", log_stream_name="{machine_name}/{logger_name}"
 )
 LOGGER.addHandler(cw_handler)
 LOGGER.info("cruddur backend running")
