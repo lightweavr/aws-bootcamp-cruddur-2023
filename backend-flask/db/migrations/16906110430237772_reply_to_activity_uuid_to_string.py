@@ -2,24 +2,28 @@ from lib.db import db
 
 
 class ReplyToActivityUuidToStringMigration:
-    def migrate_sql():
+    @staticmethod
+    def migrate_sql() -> str:
         data = """
     ALTER TABLE activities DROP COLUMN reply_to_activity_uuid;
     ALTER TABLE activities ADD COLUMN reply_to_activity_uuid uuid;
     """
         return data
 
-    def rollback_sql():
+    @staticmethod
+    def rollback_sql() -> str:
         data = """
     ALTER TABLE activities DROP COLUMN reply_to_activity_uuid;
     ALTER TABLE activities ADD COLUMN reply_to_activity_uuid integer;
     """
         return data
 
-    def migrate():
+    @staticmethod
+    def migrate() -> None:
         db.query_commit(ReplyToActivityUuidToStringMigration.migrate_sql(), {})
 
-    def rollback():
+    @staticmethod
+    def rollback() -> None:
         db.query_commit(ReplyToActivityUuidToStringMigration.rollback_sql(), {})
 
 
