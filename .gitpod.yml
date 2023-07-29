@@ -20,7 +20,7 @@ tasks:
       unzip /tmp/awssam.zip -d $tempdir/
       $tempdir/install -i $dir/aws-sam -b $dir/bin --update
       pip install cfn-lint
-      git clone https://github.com/python/typeshed.git --depth 1 -q
+      git clone https://github.com/python/typeshed.git /workspace/typeshed--depth 1 -q
     command: |
       complete -C '/workspace/bin/aws_completer' aws
       export PATH=/workspace/bin:/workspace/aws-bootcamp-cruddur-2023/bin:$PATH
