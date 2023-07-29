@@ -12,8 +12,11 @@ from flask_cors import CORS, cross_origin
 import routes.activities
 import routes.messages
 import routes.users
-from lib.cognito_jwt_token import (CognitoJwtToken, TokenVerifyError,
-                                   extract_access_token)
+from lib.cognito_jwt_token import (
+    CognitoJwtToken,
+    TokenVerifyError,
+    extract_access_token,
+)
 from lib.cors import init_cors
 from lib.helpers import model_json
 from lib.honeycomb import init_honeycomb
@@ -46,8 +49,9 @@ init_xray(app)
 LOGGER: logging.Logger = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 cw_handler = watchtower.CloudWatchLogHandler(
-    log_group="/cruddur/{program_name}/server",
+    log_group="/cruddur/backend-flask/server",
     log_stream_name="{machine_name}/{logger_name}",
+    log_group_retention_days=7,
 )
 LOGGER.addHandler(cw_handler)
 LOGGER.info("cruddur backend running")
