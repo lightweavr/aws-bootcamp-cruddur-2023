@@ -42,8 +42,21 @@ function package() {
     --template-file $SAM_PATH
 }
 
-function deploy() {
+function deploy_params() {
     # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-deploy.html
+    shift;
+
+    sam deploy \
+    --region $REGION \
+    --s3-bucket $ARTIFACT_BUCKET \
+    --s3-prefix "$TARGET" \
+    --template-file $TMP_PACKAGED_TEMPLATE_PATH \
+    --stack-name "CrdSam${TARGET}" \
+    --capabilities "CAPABILITY_NAMED_IAM" \
+    --parameter-overrides "$@"
+}
+
+function deploy(){
     sam deploy \
     --region $REGION \
     --s3-bucket $ARTIFACT_BUCKET \
@@ -51,13 +64,13 @@ function deploy() {
     --template-file $TMP_PACKAGED_TEMPLATE_PATH \
     --stack-name "CrdSam${TARGET}" \
     --capabilities "CAPABILITY_NAMED_IAM"
-    # --no-execute-changeset \
 }
 
 case $ACTION in
     "b"|"build") build "${TARGET}" ;;
     "p"|"package") package "${TARGET}" ;;
     "d"|"deploy") deploy "${TARGET}" ;;
+    "dp"|"deploy-params") deploy_params "${TARGET}" "$@";;
     "bd")
         build "${TARGET}"
         deploy "${TARGET}" ;;
