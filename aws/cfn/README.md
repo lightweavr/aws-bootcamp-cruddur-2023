@@ -35,14 +35,16 @@ cfn frontend
 samcfn bd ddb
 samcfn bd presign-authorizer
 samcfn bd presign
-samcfn bd user-confirm
 ```
 2. `cfn backend`
 3. `cfn db`
-4. `cfn service`
-5. `cfn cicd`
+4. `samcfn bd user-confirm`
+    * This has dependencies on the Security Group & Database endpoint
+5. `cfn service`
+6. `cfn cicd`
 
 ## Post Turnup
 1. [Approve the codestar connection](https://us-west-2.console.aws.amazon.com/codesuite/settings/connections)
 2. Push a codepipeline build to populate the frontend bucket
-3. Populate the Cruddur database
+3. Populate the Cruddur database - `db -p init`
+4. Update the cognito user pool post confirmation lambda to point to the created post confirmation lambda

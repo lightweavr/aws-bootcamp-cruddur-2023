@@ -117,3 +117,10 @@ Resources:
       Type: String
       Description: Username for Cruddur RDS instance
       Value: !Ref MasterUsername
+  DatabaseResourceId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /cruddur/db/resource-id
+      Type: String
+      Description: Resource ID for the cruddur database
+      Value: !GetAtt Database.DbiResourceId

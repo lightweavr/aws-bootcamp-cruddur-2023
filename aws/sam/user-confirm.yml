@@ -18,6 +18,12 @@ Parameters:
     Type: String
     Description: This is our FargateCluster
     Default: Cruddurbackend
+  dbHost:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cruddur/db/endpoint
+  dbResource:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cruddur/db/resource-id
 
 Resources:
   ConfirmationLambda:
@@ -32,6 +38,10 @@ Resources:
       Role: !GetAtt ExecutionRole.Arn
       MemorySize: !Ref MemorySize
       Timeout: !Ref Timeout
+      Environment:
+        Variables:
+          dbHost: !Ref dbHost
+
       VpcConfig:
         SecurityGroupIds:
           - Fn::ImportValue: !Sub "${BackendStack}ServiceSGId"
@@ -86,6 +96,13 @@ Resources:
                   - "ssm:GetParameters"
                   - "ssm:GetParameter"
                 Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cruddur/*"
+              # Grant permission to login as postgres_iam user
+              # https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.IAMPolicy.html
+              - Sid: RdsAccess
+                Effect: "Allow"
+                Action:
+                  - rds-db:connect
+                Resource: !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:${dbResource}/postgres_iam"
 
   Permission:
     Type: AWS::Lambda::Permission
