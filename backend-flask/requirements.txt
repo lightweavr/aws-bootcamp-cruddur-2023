@@ -20,5 +20,6 @@ psycopg[binary]
 psycopg[pool]
 
 boto3
+boto3-stubs[essential]
 
 click
