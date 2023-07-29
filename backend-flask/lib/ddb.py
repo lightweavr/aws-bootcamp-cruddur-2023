@@ -6,7 +6,8 @@ import os
 import botocore.exceptions
 from flask import current_app as app
 from mypy_boto3_dynamodb.client import DynamoDBClient
-from typing import Optional, Dict
+from typing import Optional, Dict, Sequence
+
 
 def debug_print(message: str) -> None:
     if app:
@@ -14,21 +15,25 @@ def debug_print(message: str) -> None:
     else:
         print(message)
 
-DDB_TABLE_NAME = os.getenv("CRUDDUR_DDB_TABLE_NAME")
 
 class Ddb:
-    def __init__(self):
+    def __init__(self) -> None:
         endpoint_url = os.getenv("AWS_ENDPOINT_URL")
         if endpoint_url:
             attrs = {"endpoint_url": endpoint_url}
         else:
             attrs = {}
-        self.client = boto3.client("dynamodb", **attrs)
 
-    def list_message_groups(self, my_user_uuid):
+        table_name = os.getenv("CRUDDUR_DDB_TABLE_NAME")
+        if not table_name:
+            raise RuntimeError("env var CRUDDUR_DDB_TABLE_NAME not set")
+        self.table_name: str = table_name
+        self.client: DynamoDBClient = boto3.client("dynamodb", **attrs)
+
+    def list_message_groups(self, my_user_uuid: str) -> Sequence[Dict[str, str]]:
         year = str(datetime.now().year)
         query_params = {
-            "TableName": DDB_TABLE_NAME,
+            "TableName": self.table_name,
             "KeyConditionExpression": "pk = :pk AND begins_with(sk,:year)",
             "ScanIndexForward": False,
             "Limit": 20,
@@ -39,7 +44,7 @@ class Ddb:
         }
         # debug_print(f"list message groups query-params: {query_params}")
         # query the table
-        response = self.client.query(**query_params)
+        response = self.client.query(**query_params) # pyre-ignore: [6]
         items = response["Items"]
 
         results = []
@@ -56,10 +61,10 @@ class Ddb:
             )
         return results
 
-    def list_messages(self, message_group_uuid):
+    def list_messages(self, message_group_uuid: str) -> Sequence[Dict[str, str]]:
         year = str(datetime.now().year)
         query_params = {
-            "TableName": DDB_TABLE_NAME,
+            "TableName": self.table_name,
             "KeyConditionExpression": "pk = :pk AND begins_with(sk,:year)",
             "ScanIndexForward": False,
             "Limit": 20,
@@ -69,7 +74,7 @@ class Ddb:
             },
         }
 
-        response = self.client.query(**query_params)
+        response = self.client.query(**query_params) # pyre-ignore: [6]
         items = response["Items"]
         items.reverse()
         results = []
@@ -88,12 +93,12 @@ class Ddb:
 
     def create_message(
         self,
-        message_group_uuid,
-        message,
-        my_user_uuid,
-        my_user_display_name,
-        my_user_handle,
-    ):
+        message_group_uuid: str,
+        message: str,
+        my_user_uuid: str,
+        my_user_display_name: str,
+        my_user_handle: str,
+    ) -> Dict[str, str]:
         created_at = datetime.now().isoformat()
         message_uuid = str(uuid.uuid4())
 
@@ -107,7 +112,7 @@ class Ddb:
             "user_handle": {"S": my_user_handle},
         }
         # insert the record into the table
-        response = client.put_item(TableName=DDB_TABLE_NAME, Item=record)
+        response = self.client.put_item(TableName=self.table_name, Item=record)
         # print the response
         debug_print(f"create message: {response}")
         return {
@@ -121,15 +126,14 @@ class Ddb:
 
     def create_message_group(
         self,
-        message,
-        my_user_uuid,
-        my_user_display_name,
-        my_user_handle,
-        other_user_uuid,
-        other_user_display_name,
-        other_user_handle,
+        message: str,
+        my_user_uuid: str,
+        my_user_display_name: str,
+        my_user_handle: str,
+        other_user_uuid: str,
+        other_user_display_name: str,
+        other_user_handle: str,
     ) -> Optional[Dict[str, str]]:
-
         # Check to see if a message group already exists
         # In theory this shouldn't be possible since the UI has a message group ID assigned, but just in case...
 
@@ -139,7 +143,7 @@ class Ddb:
         existing_group = False
         message_group_uuid = None
         query_params = {
-            "TableName": DDB_TABLE_NAME,
+            "TableName": self.table_name,
             "KeyConditionExpression": "pk = :pk",
             "FilterExpression": "user_uuid = :other_user_uuid",
             "ProjectionExpression": "message_group_uuid",
@@ -150,12 +154,16 @@ class Ddb:
             "ScanIndexForward": False,
             "ReturnConsumedCapacity": "TOTAL",
         }
-        response = self.client.query(**query_params)
+        response = self.client.query(**query_params) # pyre-ignore: [6]
 
         if response["Count"] > 0:
-            debug_print(f"Check for existing group for {my_user_display_name}/{other_user_display_name} found a result: {response['Items']}")
+            debug_print(
+                f"Check for existing group for {my_user_display_name}/{other_user_display_name} found a result: {response['Items']}"
+            )
             if response["Count"] > 1:
-                debug_print(f"WARNING: More than one message group exists for {my_user_display_name}/{other_user_display_name}!")
+                debug_print(
+                    f"WARNING: More than one message group exists for {my_user_display_name}/{other_user_display_name}!"
+                )
             message_group_uuid = response["Items"][0]["message_group_uuid"]["S"]
             existing_group = True
 
@@ -186,7 +194,7 @@ class Ddb:
             "user_handle": {"S": my_user_handle},
         }
 
-        message = {
+        message_struct = {
             "pk": {"S": f"MSG#{message_group_uuid}"},
             "sk": {"S": created_at},
             "message": {"S": message},
@@ -196,17 +204,17 @@ class Ddb:
             "user_handle": {"S": my_user_handle},
         }
 
-        items = {
-            DDB_TABLE_NAME: [{"PutRequest": {"Item": message}}]
-        }
+        items = {self.table_name: [{"PutRequest": {"Item": message_struct}}]}
         if not existing_group:
-            items[DDB_TABLE_NAME].extend([
-                {"PutRequest": {"Item": my_message_group}},
-                {"PutRequest": {"Item": other_message_group}},
-            ])
+            items[self.table_name].extend(
+                [
+                    {"PutRequest": {"Item": my_message_group}},
+                    {"PutRequest": {"Item": other_message_group}},
+                ]
+            )
 
         try:
-            response = self.client.batch_write_item(RequestItems=items)
+            response = self.client.batch_write_item(RequestItems=items) # pyre-ignore: [6]
             return {"message_group_uuid": message_group_uuid}
         except botocore.exceptions.ClientError as e:
             debug_print(f"create_message_group.try: {e}")
