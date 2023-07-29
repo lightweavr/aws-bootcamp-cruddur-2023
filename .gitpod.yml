@@ -20,14 +20,14 @@ tasks:
       unzip /tmp/awssam.zip -d $tempdir/
       $tempdir/install -i $dir/aws-sam -b $dir/bin --update
       pip install cfn-lint
-      git clone https://github.com/python/typeshed.git /workspace/typeshed--depth 1 -q
+      pip install -r backend-flask/requirements-dev.txt
+      npm install aws-cdk -g
+      git clone https://github.com/python/typeshed.git /workspace/typeshed --depth 1 -q
     command: |
       complete -C '/workspace/bin/aws_completer' aws
       export PATH=/workspace/bin:/workspace/aws-bootcamp-cruddur-2023/bin:$PATH
       /workspace/aws-bootcamp-cruddur-2023/bin/update-sg-rule
       /workspace/aws-bootcamp-cruddur-2023/bin/ecs login
-      pip install -r backend-flask/requirements-dev.txt
-      npm install aws-cdk -g
       clear
   - name: install-postgres-client
     command: |
