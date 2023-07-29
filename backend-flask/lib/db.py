@@ -1,9 +1,11 @@
 from psycopg_pool import ConnectionPool
 from flask import current_app as app
-from typing import Sequence
+from typing import Mapping
 import re
 import os
 import sys
+import psycopg2
+
 
 
 class Db:
@@ -30,7 +32,7 @@ class Db:
                 conn.commit()
                 if is_returning_id:
                     return returning_id
-        except Exception as err:
+        except psycopg2.Error as err:
             self.print_sql_err(err)
 
     # when we want to return a json object
@@ -62,7 +64,7 @@ class Db:
                 else:
                     return json[0]
 
-    def query_single(self, sql, params: Sequence, verbose=False):
+    def query_single(self, sql, params: Mapping[str, str], verbose=False):
         if app and verbose:
             app.logger.debug(f"Running SQL query {sql} with params {params}")
         with self.pool.connection() as conn:
@@ -71,7 +73,7 @@ class Db:
                 result = cur.fetchone()
                 return result[0]
 
-    def query_single_noreturn(self, sql, params: Sequence, verbose=False) -> None:
+    def query_single_noreturn(self, sql, params: Mapping[str, str], verbose=False) -> None:
         if app and verbose:
             app.logger.debug(f"Running SQL query {sql}")
         with self.pool.connection() as conn:
@@ -147,12 +149,12 @@ class Db:
         return sql.strip()
 
     @staticmethod
-    def print_sql_err(err: Exception) -> None:
+    def print_sql_err(err: psycopg2.Error) -> None:
         # get details about the exception
         err_type, err_obj, traceback = sys.exc_info()
 
         # get the line number when exception occured
-        line_num = traceback.tb_lineno
+        line_num = traceback.tb_lineno if traceback else -1
 
         if app:
             log = app.logger.error
