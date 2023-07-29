@@ -10,6 +10,14 @@ Parameters:
   Timeout:
     Type: Number
     Default: 3
+  NetworkingStack:
+    Type: String
+    Description: This is our base layer of networking components eg. VPC, Subnets
+    Default: Cruddurnetworking
+  BackendStack:
+    Type: String
+    Description: This is our FargateCluster
+    Default: Cruddurbackend
 
 Resources:
   ConfirmationLambda:
@@ -24,6 +32,14 @@ Resources:
       Role: !GetAtt ExecutionRole.Arn
       MemorySize: !Ref MemorySize
       Timeout: !Ref Timeout
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub "${BackendStack}ServiceSGId"
+        SubnetIds:
+          !Split [
+            ",",
+            Fn::ImportValue: !Sub "${NetworkingStack}PublicSubnetIds",
+          ]
       Layers:
         # psycopg2 built for Lambda
         - arn:aws:lambda:us-west-2:898466741470:layer:psycopg2-py38:1
