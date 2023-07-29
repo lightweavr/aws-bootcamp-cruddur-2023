@@ -98,15 +98,14 @@ def get_user_uuids(first_handle, second_handle):
     return results
 
 
-def seed_ddb(client, table_name):
+def seed_ddb(ddb, table_name):
     # Load a bunch of data in the past, since we're adding a lot of data, the timestamps are hours in the future
     now = datetime.now() - timedelta(hours=24)
     users = get_user_uuids("andrewbrown", "aj")
 
     message = "Initializing the conversation"
 
-    message_group_uuid = Ddb.create_message_group(
-        client,
+    message_group_uuid = ddb.create_message_group(
         message,
         my_user_uuid=users["my_user"]["uuid"],
         my_user_display_name=users["my_user"]["display_name"],
@@ -136,7 +135,7 @@ def seed_ddb(client, table_name):
             print(line)
             raise "invalid line"
 
-        created_at = (now + timedelta(minutes=i)).isoformat()
+        created_at = (now - timedelta(days=1) + timedelta(minutes=i)).isoformat()
         message = {
             "pk": {"S": f"MSG#{message_group_uuid['message_group_uuid']}"},
             "sk": {"S": created_at},
@@ -171,7 +170,8 @@ if __name__ == "__main__":
     if not args.prod:
         attrs["endpoint_url"] = "http://localhost:8000"
 
-    client = boto3.client("dynamodb", **attrs)
+    ddb = Ddb()
+    client = ddb.client
 
     match args.command:
         case "delete":
@@ -183,6 +183,6 @@ if __name__ == "__main__":
         case "create":
             create(client, args.table_name)
         case "seed":
-            seed_ddb(client, args.table_name)
+            seed_ddb(ddb, args.table_name)
         case _:
             print("Not sure how you got here, you didn't provide a valid subcommand")
