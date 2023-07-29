@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from time import strftime
+from typing import Dict, Tuple, TypeVar
 
 # Cloudwatch
 import watchtower
@@ -9,7 +10,6 @@ from flask import Flask, request
 from flask_cors import CORS, cross_origin
 
 import routes.activities
-import routes.general
 import routes.messages
 import routes.users
 from lib.cognito_jwt_token import (CognitoJwtToken, TokenVerifyError,
@@ -34,6 +34,8 @@ from services.users_short import *
 
 app = Flask(__name__)
 
+T = TypeVar("T")
+
 # Initialize tracing and an exporter that can send data to Honeycomb
 init_honeycomb(app)
 
@@ -41,7 +43,7 @@ init_honeycomb(app)
 init_xray(app)
 
 # Cloudwatch - because it hooks into the logging framework, no point splitting it out
-LOGGER = logging.getLogger(__name__)
+LOGGER: logging.Logger = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 cw_handler = watchtower.CloudWatchLogHandler(
     log_group="/cruddur/{program_name}/server",
@@ -53,7 +55,7 @@ LOGGER.info("cruddur backend running")
 
 # Log non-200 responses
 @app.after_request
-def after_request(response):
+def after_request(response: T) -> T:
     # This only works when debug mode is off - https://stackoverflow.com/a/15004612
     if response.status_code == 200:
         return response
@@ -82,9 +84,10 @@ routes.messages.load(app)
 
 
 @app.route("/api/health-check")
-def health_check():
+def health_check() -> Tuple[Dict[str, bool], int]:
     return {"success": True}, 200
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    debug = os.getenv("FLASK_ENV", "prod") == "development"
+    app.run(debug=debug)
