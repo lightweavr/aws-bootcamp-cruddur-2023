@@ -19,15 +19,13 @@ tasks:
       tempdir=$(mktemp -d)
       unzip /tmp/awssam.zip -d $tempdir/
       $tempdir/install -i $dir/aws-sam -b $dir/bin --update
-      pip install cfn-lint
-      pip install -r backend-flask/requirements-dev.txt
-      npm install aws-cdk -g
-      git clone https://github.com/python/typeshed.git /workspace/typeshed --depth 1 -q
     command: |
       complete -C '/workspace/bin/aws_completer' aws
       export PATH=/workspace/bin:/workspace/aws-bootcamp-cruddur-2023/bin:$PATH
       /workspace/aws-bootcamp-cruddur-2023/bin/update-sg-rule
       /workspace/aws-bootcamp-cruddur-2023/bin/ecs login
+      $GITPOD_REPO_ROOT/bin/generate-env backend
+      $GITPOD_REPO_ROOT/bin/generate-env frontend
       clear
   - name: install-postgres-client
     command: |
@@ -42,10 +40,11 @@ tasks:
       mkdir -p /workspace/docker/psqldb
       exit
   - name: Setup environment files
-    command: |
-      $GITPOD_REPO_ROOT/bin/generate-env backend
-      $GITPOD_REPO_ROOT/bin/generate-env frontend
-      exit
+    init: |
+      pip install cfn-lint
+      pip install -r backend-flask/requirements-dev.txt
+      npm install aws-cdk -g
+      git clone https://github.com/python/typeshed.git /workspace/typeshed --depth 1 -q
   - name: Setup CDK requirements
     command: |
       cd $GITPOD_REPO_ROOT/thumbing-serverless-cdk
