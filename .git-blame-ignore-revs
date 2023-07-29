@@ -3,3 +3,5 @@
 b99e9d0bd4e5f1a8fdfe4d2435158fbc7626c94e
 # Reformatted JS code with prettier
 6ecedb09f870054b22ea4aa7b8c7cafa2683debf
+# Mass import fix with isort
+3ef0c9a73b0b67849629f4dd8f5146fecd84a11b
