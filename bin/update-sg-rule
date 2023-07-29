@@ -1,6 +1,4 @@
 #! /usr/bin/bash
-set -x
-
 DB_SG_ID=$(aws ec2 describe-security-groups --filters Name=group-name,Values=CruddurdbDatabaseSG --query SecurityGroups[0].GroupId --output text)
 DB_SG_RULE_ID=$(aws ec2 describe-security-group-rules --filters Name=group-id,Values=${DB_SG_ID} --query SecurityGroupRules|jq -r '.[] | select(.IsEgress == false and .CidrIpv4) | .SecurityGroupRuleId')
 
