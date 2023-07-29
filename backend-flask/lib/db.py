@@ -1,15 +1,15 @@
 from psycopg_pool import ConnectionPool
 from flask import current_app as app
-from typing import Mapping
+from typing import Mapping, Optional
 import re
 import os
 import sys
 import psycopg2
-
+# psycopg2.sql.SQL
 
 
 class Db:
-    def __init__(self):
+    def __init__(self) -> None:
         if "CONNECTION_URL" in os.environ:
             connection_url = os.getenv("CONNECTION_URL")
         else:
@@ -17,26 +17,26 @@ class Db:
             password = os.getenv("DB_PASSWORD")
             host = os.getenv("DB_ENDPOINT")
             connection_url = f"postgresql://{user}:{password}@{host}:5432/cruddur"
-        self.pool = ConnectionPool(connection_url)
+        self.pool = ConnectionPool(connection_url) # pyre-ignore [6]
 
-    def query_commit(self, sql, params={}):
+    def query_commit(self, sql: str, params: Mapping[str, str]) -> Optional[str]:
         pattern = r"\bRETURNING\b"
         is_returning_id = re.search(pattern, sql)
-
         try:
             with self.pool.connection() as conn:
                 cur = conn.cursor()
-                cur.execute(sql, params)
+                cur.execute(psycopg2.sql.SQL(sql), params) # pyre-ignore [6]
                 if is_returning_id:
                     returning_id = cur.fetchone()[0]
-                conn.commit()
-                if is_returning_id:
+                    conn.commit()
                     return returning_id
+                else:
+                    conn.commit()
         except psycopg2.Error as err:
             self.print_sql_err(err)
 
     # when we want to return a json object
-    def query_array_json(self, sql, params={}, verbose=False) -> str:
+    def query_array_json(self, sql: str, params: Mapping[str, str], verbose: bool=False) -> str:
         wrapped_sql = self.query_wrap_array(sql)
         if app and verbose:
             app.logger.debug(f"Running SQL query {wrapped_sql}")
@@ -50,7 +50,7 @@ class Db:
                     return json[0]
 
     # When we want to return an array of json objects
-    def query_object_json(self, sql, params={}, verbose=False) -> str:
+    def query_object_json(self, sql: str, params: Mapping[str, str], verbose: bool=False) -> str:
         wrapped_sql = self.query_wrap_object(sql)
 
         if app and verbose:
@@ -64,38 +64,38 @@ class Db:
                 else:
                     return json[0]
 
-    def query_single(self, sql, params: Mapping[str, str], verbose=False):
+    def query_single(self, sql: str, params: Mapping[str, str], verbose: bool=False) -> str:
         if app and verbose:
             app.logger.debug(f"Running SQL query {sql} with params {params}")
         with self.pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(sql, params)
+                cur.execute(psycopg2.sql.SQL(sql), params)
                 result = cur.fetchone()
                 return result[0]
 
-    def query_single_noreturn(self, sql, params: Mapping[str, str], verbose=False) -> None:
+    def query_single_noreturn(self, sql:str, params: Mapping[str, str], verbose: bool=False) -> None:
         if app and verbose:
             app.logger.debug(f"Running SQL query {sql}")
         with self.pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(sql, params)
+                cur.execute(psycopg2.sql.SQL(sql), params)
 
-    def query_get_handle_from_cognito_id(self, cognito_user_id) -> str:
+    def query_get_handle_from_cognito_id(self, cognito_user_id: str) -> str:
         sql = "select handle from users where cognito_user_id = %(cognito_user_id)s"
         params = {"cognito_user_id": cognito_user_id}
         return self.query_single(sql, params)
 
-    def query_get_uuid_from_cognito_id(self, cognito_user_id) -> str:
+    def query_get_uuid_from_cognito_id(self, cognito_user_id: str) -> str:
         sql = "select uuid from users where cognito_user_id = %(cognito_user_id)s"
         params = {"cognito_user_id": cognito_user_id}
         return self.query_single(sql, params)
 
-    def query_get_uuid_from_handle(self, handle) -> str:
+    def query_get_uuid_from_handle(self, handle: str) -> str:
         sql = "select uuid from users where handle = %(handle)s"
         params = {"handle": handle}
         return self.query_single(sql, params)
 
-    def query_create_message_users(self, cognito_user_id, user_receiver_handle):
+    def query_create_message_users(self, cognito_user_id: str, user_receiver_handle: str) -> str:
         sql = """
       SELECT
         users.uuid,
@@ -124,7 +124,7 @@ class Db:
         )
 
     @staticmethod
-    def query_wrap_object(template):
+    def query_wrap_object(template: str) -> str:
         """
         This does the same thing as conn.cursor(row_factory=dict_row), except it coerces everything
         to strings before being returned
@@ -140,7 +140,7 @@ class Db:
         return sql.strip()
 
     @staticmethod
-    def query_wrap_array(template):
+    def query_wrap_array(template: str) -> str:
         sql = f"""
     (SELECT array_to_json(array_agg(row_to_json(array_row))) FROM (
     {template.strip()}
