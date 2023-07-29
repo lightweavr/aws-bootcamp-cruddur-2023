@@ -5,6 +5,8 @@ import uuid
 import os
 import botocore.exceptions
 from flask import current_app as app
+from mypy_boto3_dynamodb.client import DynamoDBClient
+from typing import Optional, Dict
 
 def debug_print(message: str) -> None:
     if app:
@@ -15,16 +17,15 @@ def debug_print(message: str) -> None:
 DDB_TABLE_NAME = os.getenv("CRUDDUR_DDB_TABLE_NAME")
 
 class Ddb:
-    def client():
+    def __init__(self):
         endpoint_url = os.getenv("AWS_ENDPOINT_URL")
         if endpoint_url:
             attrs = {"endpoint_url": endpoint_url}
         else:
             attrs = {}
-        dynamodb = boto3.client("dynamodb", **attrs)
-        return dynamodb
+        self.client = boto3.client("dynamodb", **attrs)
 
-    def list_message_groups(client, my_user_uuid):
+    def list_message_groups(self, my_user_uuid):
         year = str(datetime.now().year)
         query_params = {
             "TableName": DDB_TABLE_NAME,
@@ -38,7 +39,7 @@ class Ddb:
         }
         # debug_print(f"list message groups query-params: {query_params}")
         # query the table
-        response = client.query(**query_params)
+        response = self.client.query(**query_params)
         items = response["Items"]
 
         results = []
@@ -55,7 +56,7 @@ class Ddb:
             )
         return results
 
-    def list_messages(client, message_group_uuid):
+    def list_messages(self, message_group_uuid):
         year = str(datetime.now().year)
         query_params = {
             "TableName": DDB_TABLE_NAME,
@@ -68,7 +69,7 @@ class Ddb:
             },
         }
 
-        response = client.query(**query_params)
+        response = self.client.query(**query_params)
         items = response["Items"]
         items.reverse()
         results = []
@@ -86,7 +87,7 @@ class Ddb:
         return results
 
     def create_message(
-        client,
+        self,
         message_group_uuid,
         message,
         my_user_uuid,
@@ -119,7 +120,7 @@ class Ddb:
         }
 
     def create_message_group(
-        client,
+        self,
         message,
         my_user_uuid,
         my_user_display_name,
@@ -127,7 +128,7 @@ class Ddb:
         other_user_uuid,
         other_user_display_name,
         other_user_handle,
-    ) -> str:
+    ) -> Optional[Dict[str, str]]:
 
         # Check to see if a message group already exists
         # In theory this shouldn't be possible since the UI has a message group ID assigned, but just in case...
@@ -149,7 +150,7 @@ class Ddb:
             "ScanIndexForward": False,
             "ReturnConsumedCapacity": "TOTAL",
         }
-        response = client.query(**query_params)
+        response = self.client.query(**query_params)
 
         if response["Count"] > 0:
             debug_print(f"Check for existing group for {my_user_display_name}/{other_user_display_name} found a result: {response['Items']}")
@@ -205,7 +206,7 @@ class Ddb:
             ])
 
         try:
-            response = client.batch_write_item(RequestItems=items)
+            response = self.client.batch_write_item(RequestItems=items)
             return {"message_group_uuid": message_group_uuid}
         except botocore.exceptions.ClientError as e:
             debug_print(f"create_message_group.try: {e}")

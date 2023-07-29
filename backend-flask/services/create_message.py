@@ -55,11 +55,10 @@ class CreateMessage:
         app.logger.debug(f"USERS=[my-user]: {my_user}")
         app.logger.debug(f"USERS=[other-user]: {other_user}")
 
-        ddb = Ddb.client()
+        ddb = Ddb()
 
         if mode == "update":
-            data = Ddb.create_message(
-                client=ddb,
+            data = ddb.create_message(
                 message_group_uuid=message_group_uuid,
                 message=message,
                 my_user_uuid=my_user["uuid"],
@@ -67,8 +66,7 @@ class CreateMessage:
                 my_user_handle=my_user["handle"],
             )
         elif mode == "create":
-            data = Ddb.create_message_group(
-                client=ddb,
+            data = ddb.create_message_group(
                 message=message,
                 my_user_uuid=my_user["uuid"],
                 my_user_display_name=my_user["display_name"],
