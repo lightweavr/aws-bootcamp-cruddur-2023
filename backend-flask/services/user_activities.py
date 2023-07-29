@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
-from lib.db import db
-import lib.db_templates
+
 from aws_xray_sdk.core import xray_recorder
+
+import lib.db_templates
+from lib.db import db
 
 
 class UserActivities:

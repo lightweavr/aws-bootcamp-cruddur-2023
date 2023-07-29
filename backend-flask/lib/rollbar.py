@@ -1,8 +1,10 @@
-from flask import got_request_exception
-from time import strftime
 import os
+from time import strftime
+
 import rollbar
 import rollbar.contrib.flask
+from flask import got_request_exception
+
 
 def init_rollbar(app):
     with app.app_context():

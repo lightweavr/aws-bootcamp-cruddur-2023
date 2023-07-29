@@ -1,5 +1,5 @@
-from lib.db import db
 import lib.db_templates
+from lib.db import db
 
 
 class UpdateProfile:

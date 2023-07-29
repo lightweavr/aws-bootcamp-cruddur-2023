@@ -1,41 +1,36 @@
-from flask import Flask
-from flask import request
-from flask_cors import CORS, cross_origin
-import json, logging, os
+import json
+import logging
+import os
 from time import strftime
-
-from services.home_activities import *
-from services.notifications_activities import *
-from services.user_activities import *
-from services.create_activity import *
-from services.create_reply import *
-from services.search_activities import *
-from services.message_groups import *
-from services.messages import *
-from services.create_message import *
-from services.show_activity import *
-from services.users_short import *
-from services.update_profile import *
-
-from lib.cognito_jwt_token import (
-    CognitoJwtToken,
-    extract_access_token,
-    TokenVerifyError,
-)
-
-from lib.rollbar import init_rollbar
-from lib.xray import init_xray
-from lib.cors import init_cors
-from lib.honeycomb import init_honeycomb
-
-from lib.helpers import model_json
-import routes.general
-import routes.activities
-import routes.users
-import routes.messages
 
 # Cloudwatch
 import watchtower
+from flask import Flask, request
+from flask_cors import CORS, cross_origin
+
+import routes.activities
+import routes.general
+import routes.messages
+import routes.users
+from lib.cognito_jwt_token import (CognitoJwtToken, TokenVerifyError,
+                                   extract_access_token)
+from lib.cors import init_cors
+from lib.helpers import model_json
+from lib.honeycomb import init_honeycomb
+from lib.rollbar import init_rollbar
+from lib.xray import init_xray
+from services.create_activity import *
+from services.create_message import *
+from services.create_reply import *
+from services.home_activities import *
+from services.message_groups import *
+from services.messages import *
+from services.notifications_activities import *
+from services.search_activities import *
+from services.show_activity import *
+from services.update_profile import *
+from services.user_activities import *
+from services.users_short import *
 
 app = Flask(__name__)
 

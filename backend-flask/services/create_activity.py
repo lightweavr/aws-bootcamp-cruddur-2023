@@ -1,8 +1,10 @@
 import uuid
 from datetime import datetime, timedelta, timezone
-from lib.db import db
-import lib.db_templates
+
 from flask import current_app as app
+
+import lib.db_templates
+from lib.db import db
 
 
 class CreateActivity:

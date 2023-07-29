@@ -1,12 +1,13 @@
-import boto3
-import sys
-from datetime import datetime, timedelta, timezone
-import uuid
 import os
+import sys
+import uuid
+from datetime import datetime, timedelta, timezone
+from typing import Dict, Optional, Sequence
+
+import boto3
 import botocore.exceptions
 from flask import current_app as app
 from mypy_boto3_dynamodb.client import DynamoDBClient
-from typing import Optional, Dict, Sequence
 
 
 def debug_print(message: str) -> None:

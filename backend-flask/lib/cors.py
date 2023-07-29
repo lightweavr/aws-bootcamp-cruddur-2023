@@ -1,5 +1,7 @@
-from flask_cors import CORS
 import os
+
+from flask_cors import CORS
+
 
 def init_cors(app):
     frontend = os.getenv("FRONTEND_URL")
