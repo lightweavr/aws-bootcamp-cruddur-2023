@@ -11,8 +11,8 @@ class Messages:
 
         app.logger.debug(f"get messages UUID: {my_user_uuid}")
 
-        ddb = Ddb.client()
-        data = Ddb.list_messages(ddb, message_group_uuid)
+        ddb = Ddb()
+        data = ddb.list_messages(message_group_uuid)
         app.logger.debug(f"list_messages: {len(data)}")
         model["data"] = data
         return model
