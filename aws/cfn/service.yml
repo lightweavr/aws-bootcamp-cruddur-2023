@@ -53,6 +53,9 @@ Parameters:
   EnvBackendUrl:
     Type: String
     Default: "*"
+  EnvDdbTableName:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cruddur/ddb/tablename
   EnvDbUser:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/cruddur/db/user"
@@ -194,6 +197,8 @@ Resources:
               Value: !Ref EnvBackendUrl
             - Name: "AWS_DEFAULT_REGION"
               Value: !Ref AWS::Region
+            - Name: CRUDDUR_DDB_TABLE_NAME
+              Value: !Ref EnvDdbTableName
             - Name: "DB_ENDPOINT"
               Value: !Ref EnvDbEndpoint
             - Name: "DB_USER"
@@ -300,8 +305,8 @@ Resources:
                   - "dynamodb:ListTables"
                   - "dynamodb:ListImports"
                 Resource:
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EnvDdbTableName}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EnvDdbTableName}/index/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
