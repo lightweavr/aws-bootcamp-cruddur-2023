@@ -12,7 +12,7 @@ parent_path = os.path.abspath(os.path.join(current_path, '..', '..','backend-fla
 sys.path.append(parent_path)
 from lib.db import db
 
-def get_last_successful_run():
+def get_last_successful_run() -> int:
   sql = """
     SELECT last_successful_run
     FROM public.schema_information
@@ -20,7 +20,7 @@ def get_last_successful_run():
   """
   return int(db.query_single(sql,{},verbose=False))
 
-def set_last_successful_run(value):
+def set_last_successful_run(value: str) -> str:
   sql = """
   UPDATE schema_information
   SET last_successful_run = %(last_successful_run)s
