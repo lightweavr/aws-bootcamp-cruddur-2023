@@ -17,7 +17,7 @@ Parameters:
     Default: Cruddurnetworking
   FrontendStack:
     Type: String
-    Description: This is our base layer of networking components eg. VPC, Subnets
+    Description: This is the frontend stack (Cloudfront, DNS, etc)
     Default: Cruddurfrontend
   HostedZoneID:
     Type: AWS::Route53::HostedZone::Id

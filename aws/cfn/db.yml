@@ -52,7 +52,7 @@ Resources:
             Fn::ImportValue: !Sub "${BackendStack}ServiceSGId"
           FromPort: 5432
           ToPort: 5432
-          Description: Default Postgres Port
+          Description: !Sub Access from ${BackendStack}
         - IpProtocol: tcp
           CidrIp: 127.0.0.1/32
           FromPort: 5432
