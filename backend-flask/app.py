@@ -23,29 +23,21 @@ from lib.cognito_jwt_token import (
     TokenVerifyError,
 )
 
+from lib.rollbar import init_rollbar
+from lib.xray import init_xray
+from lib.cors import init_cors
 from lib.honeycomb import init_honeycomb
-
-# Xray
-from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 
 # Cloudwatch
 import watchtower
-
-# Rollbar
-import rollbar
-import rollbar.contrib.flask
-from flask import got_request_exception
 
 app = Flask(__name__)
 
 # Initialize tracing and an exporter that can send data to Honeycomb
 init_honeycomb(app)
+
 # Xray
-xray_url = os.getenv("AWS_XRAY_URL")
-xray_recorder.configure(service="backend-flask", dynamic_naming=xray_url)
-XRayMiddleware(app, xray_recorder)
-logging.getLogger("aws_xray_sdk").setLevel(logging.DEBUG)
+init_xray(app)
 
 # Cloudwatch - because it hooks into the logging framework, no point splitting it out
 LOGGER = logging.getLogger(__name__)
@@ -84,31 +76,10 @@ def after_request(response):
 
 
 # Rollbar
-def init_rollbar():
-    with app.app_context():
-        rollbar.init(
-            access_token=os.getenv("ROLLBAR_ACCESS_TOKEN"),
-            environment="production",
-            # server root directory, makes tracebacks prettier
-            root=os.path.dirname(os.path.realpath(__file__)),
-            # flask already sets up logging
-            allow_logging_basic_config=False,
-        )
-        rollbar.report_message("Rollbar is configured correctly", "info")
-        got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
-
+init_rollbar(app)
 
 # CORS handling
-frontend = os.getenv("FRONTEND_URL")
-backend = os.getenv("BACKEND_URL")
-origins = [frontend, backend]
-cors = CORS(
-    app,
-    resources={r"/api/*": {"origins": origins}},
-    headers=["Content-Type", "Authorization"],
-    expose_headers="Authorization",
-    methods="OPTIONS,GET,HEAD,POST",
-)
+init_cors(app)
 
 
 @app.route("/api/health-check")
