@@ -34,21 +34,15 @@ class CreateActivity:
             model["errors"] = ["message_blank"]
         elif len(message) > 280:
             model["errors"] = ["message_exceed_max_chars"]
-        
-        try:
-            user_handle = db.query_get_handle_from_cognito_id(cognito_user_id)
-        except Exception as ex:
-            app.logger.exception(f"exception fetching handle from db: {ex}")
-            model["errors"] = [f"exception fetching handle from db: {ex}"]
 
-        if user_handle == None or len(user_handle) < 1:
-            model["errors"] = ["user_handle_blank"]
+        if cognito_user_id == None or len(cognito_user_id) < 1:
+            model["errors"] = ["cognito_user_id_blank"]
 
         if not model["errors"]:
             expires_at = now + ttl_offset
             uuid = db.query_commit(
                 lib.db_templates.create,
-                {"handle": user_handle, "message": message, "expires_at": expires_at},
+                {"cognito_user_id": cognito_user_id, "message": message, "expires_at": expires_at},
             )
 
             model["data"] = db.query_object_json(
