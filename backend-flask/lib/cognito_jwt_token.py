@@ -6,6 +6,7 @@ import requests
 from jose import jwk, jwt
 from jose.exceptions import JOSEError
 from jose.utils import base64url_decode
+from typing import Any, Callable, Dict, Mapping, Optional, List, Sequence
 
 
 class FlaskAWSCognitoError(Exception):
@@ -16,7 +17,7 @@ class TokenVerifyError(Exception):
     pass
 
 
-def extract_access_token(request_headers):
+def extract_access_token(request_headers: Mapping[str, str]) -> Optional[str]:
     access_token = None
     auth_header = request_headers.get("Authorization")
     if auth_header and " " in auth_header:
@@ -25,20 +26,27 @@ def extract_access_token(request_headers):
 
 
 class CognitoJwtToken:
-    def __init__(self, user_pool_id, user_pool_client_id, region, request_client=None):
+    def __init__(
+        self,
+        user_pool_id: str,
+        user_pool_client_id: str,
+        region: str,
+        request_client: Optional[Callable] = None,  # pyre-ignore: [31]
+    ) -> None:
         self.region = region
         if not self.region:
             raise FlaskAWSCognitoError("No AWS region provided")
         self.user_pool_id = user_pool_id
         self.user_pool_client_id = user_pool_client_id
-        self.claims = None
+        self.claims: Mapping[str, str] = {}
         if not request_client:
-            self.request_client = requests.get
+            self.request_client: Callable = requests.get  # pyre-ignore: [31]
         else:
-            self.request_client = request_client
+            self.request_client: Callable = request_client  # pyre-ignore: [31]
+        self.jwk_keys: Sequence[Mapping[str, str]] = []
         self._load_jwk_keys()
 
-    def _load_jwk_keys(self):
+    def _load_jwk_keys(self) -> None:
         keys_url = f"https://cognito-idp.{self.region}.amazonaws.com/{self.user_pool_id}/.well-known/jwks.json"
         try:
             response = self.request_client(keys_url)
@@ -47,14 +55,14 @@ class CognitoJwtToken:
             raise FlaskAWSCognitoError(str(e)) from e
 
     @staticmethod
-    def _extract_headers(token):
+    def _extract_headers(token: str) -> Mapping[str, str]:
         try:
             headers = jwt.get_unverified_headers(token)
             return headers
         except JOSEError as e:
             raise TokenVerifyError(str(e)) from e
 
-    def _find_pkey(self, headers):
+    def _find_pkey(self, headers: Mapping[str, str]) -> Mapping[str, str]:
         kid = headers["kid"]
         # search for the kid in the downloaded public keys
         key_index = -1
@@ -67,7 +75,7 @@ class CognitoJwtToken:
         return self.jwk_keys[key_index]
 
     @staticmethod
-    def _verify_signature(token, pkey_data):
+    def _verify_signature(token: str, pkey_data: Dict[str, str]) -> None:
         try:
             # construct the public key
             public_key = jwk.construct(pkey_data)
@@ -83,7 +91,7 @@ class CognitoJwtToken:
             raise TokenVerifyError("Signature verification failed")
 
     @staticmethod
-    def _extract_claims(token):
+    def _extract_claims(token: str) -> Mapping[str, str]:
         try:
             claims = jwt.get_unverified_claims(token)
             return claims
@@ -91,19 +99,23 @@ class CognitoJwtToken:
             raise TokenVerifyError(str(e)) from e
 
     @staticmethod
-    def _check_expiration(claims, current_time):
+    def _check_expiration(
+        claims: Mapping[str, str], current_time: Optional[float]
+    ) -> None:
         if not current_time:
             current_time = time.time()
-        if current_time > claims["exp"]:
+        if current_time > float(claims["exp"]):
             raise TokenVerifyError("Token is expired")  # probably another exception
 
-    def _check_audience(self, claims):
+    def _check_audience(self, claims: Mapping[str, str]) -> None:
         # and the Audience  (use claims['client_id'] if verifying an access token)
         audience = claims["aud"] if "aud" in claims else claims["client_id"]
         if audience != self.user_pool_client_id:
             raise TokenVerifyError("Token was not issued for this audience")
 
-    def verify(self, token, current_time=None):
+    def verify(
+        self, token: str, current_time: Optional[float] = None
+    ) -> Mapping[str, str]:
         """https://github.com/awslabs/aws-support-tools/blob/master/Cognito/decode-verify-jwt/decode-verify-jwt.py"""
         if not token:
             raise TokenVerifyError("No token provided")
