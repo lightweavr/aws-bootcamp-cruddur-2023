@@ -22,6 +22,3 @@ psycopg[pool]
 boto3
 
 click
-
-pyre-check
-boto3-stubs[essential]
