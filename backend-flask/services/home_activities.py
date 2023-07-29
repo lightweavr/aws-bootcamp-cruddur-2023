@@ -14,7 +14,7 @@ class HomeActivities:
             span = trace.get_current_span()
             now = datetime.now(timezone.utc).astimezone()
             span.set_attribute("app.now", now.isoformat())
-            results = db.query_array_json(lib.db_templates.home)
+            results = db.query_array_json(lib.db_templates.home, {})
 
             # with pool.connection() as conn:
             #     with conn.cursor() as cur:
