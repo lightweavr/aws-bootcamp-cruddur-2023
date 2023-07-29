@@ -47,4 +47,5 @@ samcfn bd presign
 1. [Approve the codestar connection](https://us-west-2.console.aws.amazon.com/codesuite/settings/connections)
 2. Push a codepipeline build to populate the frontend bucket
 3. Populate the Cruddur database - `db -p init`
+    * Run `source update-sg-rule` to populate the `PROD_CONNECTION_URL` if needed
 4. Update the cognito user pool post confirmation lambda to point to the created post confirmation lambda
