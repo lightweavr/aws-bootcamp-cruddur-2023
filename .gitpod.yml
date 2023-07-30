@@ -22,7 +22,7 @@ tasks:
     command: |
       complete -C '/workspace/bin/aws_completer' aws
       export PATH=/workspace/bin:/workspace/aws-bootcamp-cruddur-2023/bin:$PATH
-      /workspace/aws-bootcamp-cruddur-2023/bin/update-sg-rule
+      source /workspace/aws-bootcamp-cruddur-2023/bin/update-sg-rule
       /workspace/aws-bootcamp-cruddur-2023/bin/ecs login
       $GITPOD_REPO_ROOT/bin/generate-env backend
       $GITPOD_REPO_ROOT/bin/generate-env frontend
