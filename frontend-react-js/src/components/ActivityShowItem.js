@@ -4,6 +4,7 @@ import ActivityActionReply from '../components/ActivityActionReply'
 import ActivityActionRepost from '../components/ActivityActionRepost'
 import ActivityActionLike from '../components/ActivityActionLike'
 import ActivityActionShare from '../components/ActivityActionShare'
+import ProfileAvatar from './ProfileAvatar'
 
 import { Link } from 'react-router-dom'
 import { format_datetime, time_ago, time_future } from '../lib/DateTimeFormats'
@@ -16,8 +17,10 @@ export default function ActivityShowItem (props) {
         <div {...attrs}>
             <div className="acitivty_main">
                 <div className='activity_content_wrap'>
+                    <Link className='activity_avatar' to={'/@' + props.activity.handle} >
+                         <ProfileAvatar id={props.activity.cognito_user_id} />
+                    </Link>
                     <div className='activity_content'>
-                        <Link className='activity_avatar' to={'/@' + props.activity.handle} ></Link>
                         <div className='activity_meta'>
                             <div className='activity_identity' >
                                 <Link className='display_name' to={'/@' + props.activity.handle}>{props.activity.display_name}</Link>
