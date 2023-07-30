@@ -7,9 +7,9 @@ import ActivityFeed from 'components/ActivityFeed'
 import ActivityForm from 'components/ActivityForm'
 import ReplyForm from 'components/ReplyForm'
 import checkAuth from 'lib/CheckAuth'
-import { get } from 'lib/Requests';
+import { get } from 'lib/Requests'
 
-export default function HomeFeedPage() {
+export default function HomeFeedPage () {
   const [activities, setActivities] = React.useState([])
   const [popped, setPopped] = React.useState(false)
   const [poppedReply, setPoppedReply] = React.useState(false)
@@ -28,7 +28,7 @@ export default function HomeFeedPage() {
   }
 
   React.useEffect(() => {
-    //prevents double call
+    // prevents double call
     if (dataFetchedRef.current) return
     dataFetchedRef.current = true
 

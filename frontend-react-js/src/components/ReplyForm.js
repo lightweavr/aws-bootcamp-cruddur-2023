@@ -1,15 +1,15 @@
 import './ReplyForm.css'
 import React from 'react'
 import process from 'process'
-import { post } from 'lib/Requests';
+import { post } from 'lib/Requests'
 
-import ActivityContent from 'components/ActivityContent';
-import FormErrors from 'components/FormErrors';
+import ActivityContent from 'components/ActivityContent'
+import FormErrors from 'components/FormErrors'
 
-export default function ReplyForm(props) {
+export default function ReplyForm (props) {
   const [count, setCount] = React.useState(0)
   const [message, setMessage] = React.useState('')
-  const [errors, setErrors] = React.useState([]);
+  const [errors, setErrors] = React.useState([])
 
   const classes = []
   classes.push('count')
@@ -22,14 +22,14 @@ export default function ReplyForm(props) {
     const url = `${process.env.REACT_APP_BACKEND_URL}/api/activities/${props.activity.uuid}/reply`
     const payload_data = {
       activity_uuid: props.activity.uuid,
-      message: message
+      message
     }
     post(url, payload_data, {
       auth: true,
-      setErrors: setErrors,
+      setErrors,
       success: function (data) {
         if (props.setReplies) {
-          props.setReplies(current => [data, ...current]);
+          props.setReplies(current => [data, ...current])
         }
         // reset and close the form
         setCount(0)
@@ -50,7 +50,7 @@ export default function ReplyForm(props) {
   }
 
   const close = (event) => {
-    if (event.target.classList.contains("reply_popup")) {
+    if (event.target.classList.contains('reply_popup')) {
       props.setPopped(false)
     }
   }

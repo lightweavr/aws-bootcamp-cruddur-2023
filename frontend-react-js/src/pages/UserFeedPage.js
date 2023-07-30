@@ -9,9 +9,9 @@ import ActivityForm from 'components/ActivityForm'
 import ProfileHeading from 'components/ProfileHeading'
 import ProfileForm from 'components/ProfileForm'
 import checkAuth from 'lib/CheckAuth'
-import { get } from 'lib/Requests';
+import { get } from 'lib/Requests'
 
-export default function UserFeedPage() {
+export default function UserFeedPage () {
   const [activities, setActivities] = React.useState([])
   const [profile, setProfile] = React.useState([])
   const [popped, setPopped] = React.useState([])
@@ -20,7 +20,6 @@ export default function UserFeedPage() {
   const dataFetchedRef = React.useRef(false)
 
   const params = useParams()
-  const title = `@${params.handle}`
 
   const loadData = async () => {
     const url = `${process.env.REACT_APP_BACKEND_URL}/api/activities/@${params.handle}`
@@ -35,13 +34,12 @@ export default function UserFeedPage() {
   }
 
   React.useEffect(() => {
-    //prevents double call
+    // prevents double call
     if (dataFetchedRef.current) return
     dataFetchedRef.current = true
 
     checkAuth(setUser)
     loadData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

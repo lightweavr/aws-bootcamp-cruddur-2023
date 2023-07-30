@@ -7,9 +7,9 @@ import MessageGroupFeed from 'components/MessageGroupFeed'
 import MessagesFeed from 'components/MessageFeed'
 import MessagesForm from 'components/MessageForm'
 import checkAuth from 'lib/CheckAuth'
-import { get } from 'lib/Requests';
+import { get } from 'lib/Requests'
 
-export default function MessageGroupPage() {
+export default function MessageGroupPage () {
   const [messageGroups, setMessageGroups] = React.useState([])
   const [messages, setMessages] = React.useState([])
   // eslint-disable-next-line no-unused-vars
@@ -39,14 +39,13 @@ export default function MessageGroupPage() {
   }
 
   React.useEffect(() => {
-    //prevents double call
+    // prevents double call
     if (dataFetchedRef.current) return
     dataFetchedRef.current = true
 
     checkAuth(setUser)
     loadMessageGroupsData()
     loadMessageGroupData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return (
     <article>

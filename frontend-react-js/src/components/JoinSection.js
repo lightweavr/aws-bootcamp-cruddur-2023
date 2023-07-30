@@ -1,7 +1,7 @@
 import './JoinSection.css'
 import { Link } from 'react-router-dom'
 
-export default function JoinSection(props) {
+export default function JoinSection (props) {
   return (
     <div className="join">
       <div className="join-title">Join The Party!</div>

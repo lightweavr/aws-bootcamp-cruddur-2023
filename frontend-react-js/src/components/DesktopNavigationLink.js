@@ -5,7 +5,7 @@ import { ReactComponent as ProfileIcon } from './svg/profile.svg'
 import { ReactComponent as MoreIcon } from './svg/more.svg'
 import { ReactComponent as MessagesIcon } from './svg/messages.svg'
 
-export default function DesktopNavigationLink(props) {
+export default function DesktopNavigationLink (props) {
   const classes = () => {
     const classes = ['primary']
     if (props.handle === props.active) {
@@ -27,7 +27,7 @@ export default function DesktopNavigationLink(props) {
       case 'messages':
         return <MessagesIcon className="icon" />
       default:
-        break;
+        break
     }
   }
 

@@ -3,13 +3,13 @@ import EditProfileButton from './EditProfileButton'
 
 import ProfileAvatar from './ProfileAvatar'
 
-export default function ProfileHeading(props) {
+export default function ProfileHeading (props) {
   const backgroundImage =
     'url("https://assets.cpbc.lightweaver.ca/banners/banner.jpg")'
   const styles = {
-    backgroundImage: backgroundImage,
+    backgroundImage,
     backgroundSize: 'cover',
-    backgroundPosition: 'center',
+    backgroundPosition: 'center'
   }
   return (
     <div className="activity_feed_heading profile_heading">

@@ -1,6 +1,6 @@
 import './CrudButton.css'
 
-export default function CrudButton(props) {
+export default function CrudButton (props) {
   const pop_activities_form = (event) => {
     event.preventDefault()
     props.setPopped(true)

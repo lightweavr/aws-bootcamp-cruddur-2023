@@ -1,28 +1,27 @@
-import './ActivityItem.css';
+import './ActivityItem.css'
 
-import ActivityActionReply from '../components/ActivityActionReply';
-import ActivityActionRepost from '../components/ActivityActionRepost';
-import ActivityActionLike from '../components/ActivityActionLike';
-import ActivityActionShare from '../components/ActivityActionShare';
+import ActivityActionReply from '../components/ActivityActionReply'
+import ActivityActionRepost from '../components/ActivityActionRepost'
+import ActivityActionLike from '../components/ActivityActionLike'
+import ActivityActionShare from '../components/ActivityActionShare'
 
-import { Link } from "react-router-dom";
-import { format_datetime, time_ago, time_future } from '../lib/DateTimeFormats';
-import { ReactComponent as BombIcon } from './svg/bomb.svg';
+import { Link } from 'react-router-dom'
+import { format_datetime, time_ago, time_future } from '../lib/DateTimeFormats'
+import { ReactComponent as BombIcon } from './svg/bomb.svg'
 
-export default function ActivityShowItem(props) {
-
-    const attrs = {}
-    attrs.className = 'activity_item expanded'
-    return (
+export default function ActivityShowItem (props) {
+  const attrs = {}
+  attrs.className = 'activity_item expanded'
+  return (
         <div {...attrs}>
             <div className="acitivty_main">
                 <div className='activity_content_wrap'>
                     <div className='activity_content'>
-                        <Link className='activity_avatar' to={`/@` + props.activity.handle} ></Link>
+                        <Link className='activity_avatar' to={'/@' + props.activity.handle} ></Link>
                         <div className='activity_meta'>
                             <div className='activity_identity' >
-                                <Link className='display_name' to={`/@` + props.activity.handle}>{props.activity.display_name}</Link>
-                                <Link className="handle" to={`/@` + props.activity.handle}>@{props.activity.handle}</Link>
+                                <Link className='display_name' to={'/@' + props.activity.handle}>{props.activity.display_name}</Link>
+                                <Link className="handle" to={'/@' + props.activity.handle}>@{props.activity.handle}</Link>
                             </div>{/* activity_identity */}
                             <div className='activity_times'>
                                 <div className="created_at" title={format_datetime(props.activity.created_at)}>
@@ -39,7 +38,7 @@ export default function ActivityShowItem(props) {
                 </div>
 
                 <div className='expandedMeta'>
-                    <div class="created_at">
+                    <div className="created_at">
                         {format_datetime(props.activity.created_at)}
                     </div>
                 </div>
@@ -51,5 +50,5 @@ export default function ActivityShowItem(props) {
                 </div>
             </div>
         </div>
-    )
+  )
 }

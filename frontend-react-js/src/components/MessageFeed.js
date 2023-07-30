@@ -1,7 +1,7 @@
 import './MessageFeed.css'
 import MessageItem from './MessageItem'
 
-export default function MessageFeed(props) {
+export default function MessageFeed (props) {
   return (
     <div className="message_feed">
       <div className="message_feed_heading">
