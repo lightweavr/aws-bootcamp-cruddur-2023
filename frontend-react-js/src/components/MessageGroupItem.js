@@ -1,13 +1,12 @@
 import './MessageGroupItem.css'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { format_datetime, message_time_ago } from '../lib/DateTimeFormats'
-import { useParams } from 'react-router-dom'
 
-export default function MessageGroupItem(props) {
+export default function MessageGroupItem (props) {
   const params = useParams()
 
   const classes = () => {
-    let classes = ['message_group_item']
+    const classes = ['message_group_item']
     if (params.message_group_uuid === props.message_group.uuid) {
       classes.push('active')
     }
@@ -15,7 +14,7 @@ export default function MessageGroupItem(props) {
   }
 
   return (
-    <Link className={classes()} to={`/messages/` + props.message_group.uuid}>
+    <Link className={classes()} to={'/messages/' + props.message_group.uuid}>
       <div className="message_group_avatar"></div>
       <div className="message_content">
         <div className="message_group_meta">

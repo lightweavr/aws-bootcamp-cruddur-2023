@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom'
 import { format_datetime, time_ago, time_future } from '../lib/DateTimeFormats'
 import { ReactComponent as BombIcon } from './svg/bomb.svg'
 
-export default function ActivityContent(props) {
+export default function ActivityContent (props) {
   let expires_at
   if (props.activity.expires_at) {
     expires_at = (
@@ -22,14 +22,14 @@ export default function ActivityContent(props) {
 
   return (
     <div className="activity_content_wrap">
-      <Link className='activity_avatar' to={`/@` + props.activity.handle} >
+      <Link className='activity_avatar' to={'/@' + props.activity.handle} >
         <ProfileAvatar id={props.activity.cognito_user_id} />
       </Link>
       <div className="activity_content">
         <div className="activity_meta">
           <div className='activity_identity' >
-            <Link className='display_name' to={`/@` + props.activity.handle}>{props.activity.display_name}</Link>
-            <Link className="handle" to={`/@` + props.activity.handle}>@{props.activity.handle}</Link>
+            <Link className='display_name' to={'/@' + props.activity.handle}>{props.activity.display_name}</Link>
+            <Link className="handle" to={'/@' + props.activity.handle}>@{props.activity.handle}</Link>
           </div>
           {/* activity_identity */}
           <div className="activity_times">

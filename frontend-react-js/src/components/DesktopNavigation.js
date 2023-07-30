@@ -4,7 +4,7 @@ import DesktopNavigationLink from '../components/DesktopNavigationLink'
 import CrudButton from '../components/CrudButton'
 import ProfileInfo from '../components/ProfileInfo'
 
-export default function DesktopNavigation(props) {
+export default function DesktopNavigation (props) {
   let button
   let profile
   let notificationsLink

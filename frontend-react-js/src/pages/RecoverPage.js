@@ -4,7 +4,7 @@ import { ReactComponent as Logo } from '../components/svg/logo.svg'
 import { Link } from 'react-router-dom'
 import { Auth } from 'aws-amplify'
 
-export default function RecoverPage() {
+export default function RecoverPage () {
   // Username is Eamil
   const [username, setUsername] = React.useState('')
   const [password, setPassword] = React.useState('')

@@ -1,6 +1,6 @@
 import './SuggestedUserItem.css'
 
-export default function SugestedUserItem(props) {
+export default function SugestedUserItem (props) {
   return (
     <div className="user">
       <div className="avatar"></div>

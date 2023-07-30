@@ -1,13 +1,13 @@
 import './ProfileForm.css'
 import React from 'react'
 import process from 'process'
-import { put } from 'lib/Requests';
-import FormErrors from 'components/FormErrors';
+import { put } from 'lib/Requests'
+import FormErrors from 'components/FormErrors'
 
-export default function ProfileForm(props) {
+export default function ProfileForm (props) {
   const [bio, setBio] = React.useState('')
   const [displayName, setDisplayName] = React.useState('')
-  const [errors, setErrors] = React.useState('');
+  const [errors, setErrors] = React.useState('')
 
   React.useEffect(() => {
     setBio(props.profile.bio || '')
@@ -20,7 +20,7 @@ export default function ProfileForm(props) {
       const gateway_url = `${process.env.REACT_APP_API_GATEWAY_ENDPOINT_URL}/avatars/upload_presign_key`
       const access_token = localStorage.getItem('access_token')
       const json = {
-        extension: extension,
+        extension
       }
       const res = await fetch(gateway_url, {
         method: 'POST',
@@ -29,10 +29,10 @@ export default function ProfileForm(props) {
           Origin: process.env.REACT_APP_FRONTEND_URL,
           Authorization: `Bearer ${access_token}`,
           Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       })
-      let data = await res.json()
+      const data = await res.json()
       if (res.status === 200) {
         return data.url
       } else {
@@ -58,8 +58,8 @@ export default function ProfileForm(props) {
         method: 'PUT',
         body: file,
         headers: {
-          'Content-Type': type,
-        },
+          'Content-Type': type
+        }
       })
       if (res.status === 200) {
         console.log('Upload complete: ', res)
@@ -75,19 +75,18 @@ export default function ProfileForm(props) {
     event.preventDefault()
     const url = `${process.env.REACT_APP_BACKEND_URL}/api/profile/update`
     const payload_data = {
-      bio: bio,
+      bio,
       display_name: displayName
     }
     put(url, payload_data, {
       auth: true,
-      setErrors: setErrors,
+      setErrors,
       success: function (data) {
         setBio(null)
         setDisplayName(null)
         props.setPopped(false)
       }
     })
-
   }
 
   const bio_onchange = (event) => {

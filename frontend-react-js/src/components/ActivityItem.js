@@ -1,19 +1,19 @@
 import './ActivityItem.css'
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom'
 import ActivityContent from '../components/ActivityContent'
 import ActivityActionReply from '../components/ActivityActionReply'
 import ActivityActionRepost from '../components/ActivityActionRepost'
 import ActivityActionLike from '../components/ActivityActionLike'
 import ActivityActionShare from '../components/ActivityActionShare'
 
-export default function ActivityItem(props) {
+export default function ActivityItem (props) {
   const navigate = useNavigate()
   const click = (event) => {
     event.preventDefault()
     const url = `/@${props.activity.handle}/status/${props.activity.uuid}`
     navigate(url)
-    return false;
+    return false
   }
 
   const attrs = {}

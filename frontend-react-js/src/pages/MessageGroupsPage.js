@@ -4,9 +4,9 @@ import React from 'react'
 import DesktopNavigation from 'components/DesktopNavigation'
 import MessageGroupFeed from 'components/MessageGroupFeed'
 import checkAuth from 'lib/CheckAuth'
-import { get } from 'lib/Requests';
+import { get } from 'lib/Requests'
 
-export default function MessageGroupsPage() {
+export default function MessageGroupsPage () {
   const [messageGroups, setMessageGroups] = React.useState([])
   // eslint-disable-next-line no-unused-vars
   const [popped, setPopped] = React.useState([])
@@ -24,7 +24,7 @@ export default function MessageGroupsPage() {
   }
 
   React.useEffect(() => {
-    //prevents double call
+    // prevents double call
     if (dataFetchedRef.current) return
     dataFetchedRef.current = true
 

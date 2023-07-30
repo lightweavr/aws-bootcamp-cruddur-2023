@@ -5,7 +5,7 @@ import React from 'react'
 
 import { Auth } from 'aws-amplify'
 
-export default function ProfileInfo(props) {
+export default function ProfileInfo (props) {
   const [popped, setPopped] = React.useState(false)
 
   const click_pop = (event) => {
@@ -23,7 +23,7 @@ export default function ProfileInfo(props) {
   }
 
   const classes = () => {
-    let classes = ['profile-info-wrapper']
+    const classes = ['profile-info-wrapper']
     if (popped === true) {
       classes.push('popped')
     }
