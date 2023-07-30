@@ -8,7 +8,7 @@ import ActivityFeed from 'components/ActivityFeed'
 import ActivityForm from 'components/ActivityForm'
 import ProfileHeading from 'components/ProfileHeading'
 import ProfileForm from 'components/ProfileForm'
-import checkAuth from 'lib/CheckAuth'
+import { checkAuth } from 'lib/CheckAuth'
 import { get } from 'lib/Requests'
 
 export default function UserFeedPage () {

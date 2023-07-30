@@ -1,6 +1,6 @@
 import { Auth } from 'aws-amplify'
 
-const checkAuth = async (setUser) => {
+export async function checkAuth (setUser) {
   Auth.currentAuthenticatedUser({
     // Optional, By default is false.
     // If set to true, this call will send a
@@ -32,4 +32,11 @@ const checkAuth = async (setUser) => {
   })
 }
 
-export default checkAuth
+export async function getAccessToken () {
+  Auth.currentSession()
+    .then((cognito_user_session) => {
+      const access_token = cognito_user_session.accessToken.jwtToken
+      localStorage.setItem('access_token', access_token)
+    })
+    .catch((err) => console.log(err))
+}

@@ -17,6 +17,7 @@ export default function ActivityForm (props) {
     classes.push('err')
   }
 
+  // eslint-disable-next-line no-unused-vars
   const onsubmit = async (event) => {
     event.preventDefault()
 
