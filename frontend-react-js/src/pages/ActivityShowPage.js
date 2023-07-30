@@ -50,43 +50,43 @@ export default function ActivityShowPage () {
   let el_activity
   if (activity !== null) {
     el_activity = (
-            <ActivityShowItem
-                expanded={true}
-                setReplyActivity={setReplyActivity}
-                setPopped={setPoppedReply}
-                activity={activity}
-            />
+      <ActivityShowItem
+        expanded={true}
+        setReplyActivity={setReplyActivity}
+        setPopped={setPoppedReply}
+        activity={activity}
+      />
     )
   }
 
   return (
-        <article>
-            <DesktopNavigation user={user} active={'home'} setPopped={setPopped} />
-            <div className='content'>
-                <ActivityForm
-                    popped={popped}
-                    setPopped={setPopped}
-                />
-                <ReplyForm
-                    activity={replyActivity}
-                    popped={poppedReply}
-                    setReplies={setReplies}
-                    setPopped={setPoppedReply}
-                />
-                <div className='activity_feed'>
-                    <div className='activity_feed_heading flex'>
-                        <div className="back" onClick={goBack}>&larr;</div>
-                        <div className='title'>Crud</div>
-                    </div>
-                    {el_activity}
-                    <Replies
-                        setReplyActivity={setReplyActivity}
-                        setPopped={setPoppedReply}
-                        replies={replies}
-                    />
-                </div>
-            </div>
-            <DesktopSidebar user={user} />
-        </article>
+    <article>
+      <DesktopNavigation user={user} active={'home'} setPopped={setPopped} />
+      <div className='content'>
+        <ActivityForm
+          popped={popped}
+          setPopped={setPopped}
+        />
+        <ReplyForm
+          activity={replyActivity}
+          popped={poppedReply}
+          setReplies={setReplies}
+          setPopped={setPoppedReply}
+        />
+        <div className='activity_feed'>
+          <div className='activity_feed_heading flex'>
+            <div className="back" onClick={goBack}>&larr;</div>
+            <div className='title'>Crud</div>
+          </div>
+          {el_activity}
+          <Replies
+            setReplyActivity={setReplyActivity}
+            setPopped={setPoppedReply}
+            replies={replies}
+          />
+        </div>
+      </div>
+      <DesktopSidebar user={user} />
+    </article>
   )
 }
