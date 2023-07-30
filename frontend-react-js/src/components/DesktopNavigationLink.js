@@ -15,7 +15,6 @@ export default function DesktopNavigationLink(props) {
   }
 
   const icon = () => {
-    // eslint-disable-next-line default-case
     switch (props.handle) {
       case 'home':
         return <HomeIcon className="icon" />
@@ -27,6 +26,8 @@ export default function DesktopNavigationLink(props) {
         return <MoreIcon className="icon" />
       case 'messages':
         return <MessagesIcon className="icon" />
+      default:
+        break;
     }
   }
 
