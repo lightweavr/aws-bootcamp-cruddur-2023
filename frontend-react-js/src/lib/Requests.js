@@ -1,7 +1,7 @@
 import { getAccessToken } from 'lib/CheckAuth'
 
 async function request (method, url, payload_data, options) {
-  if (options.hasOwnProperty('setErrors')) {
+  if (Object.prototype.hasOwnProperty.call(options, 'setErrors')) {
     options.setErrors('')
   }
   let res
@@ -13,7 +13,7 @@ async function request (method, url, payload_data, options) {
       }
     }
 
-    if (options.hasOwnProperty('auth') && options.auth === true) {
+    if (Object.prototype.hasOwnProperty.call(options, 'auth') && options.auth === true) {
       await getAccessToken()
       const access_token = localStorage.getItem('access_token')
       attrs.headers.Authorization = `Bearer ${access_token}`
@@ -37,11 +37,11 @@ async function request (method, url, payload_data, options) {
     console.log('request catch', err)
     if (err instanceof Response) {
       console.log('HTTP error detected:', err.status) // Here you can see the status.
-      if (options.hasOwnProperty('setErrors')) {
+      if (Object.prototype.hasOwnProperty.call(options, 'setErrors')) {
         options.setErrors([`generic_${err.status}`]) // Just an example. Adjust it to your needs.
       }
     } else {
-      if (options.hasOwnProperty('setErrors')) {
+      if (Object.prototype.hasOwnProperty.call(options, 'setErrors')) {
         options.setErrors(['generic_500']) // For network errors or any other errors
       }
     }

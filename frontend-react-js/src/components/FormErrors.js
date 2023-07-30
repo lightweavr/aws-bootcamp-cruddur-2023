@@ -6,15 +6,15 @@ export default function FormErrors (props) {
 
   if (props.errors.length > 0) {
     el_errors = (<div className='errors'>
-            {props.errors.map(err_code => {
-              return <FormErrorItem err_code={err_code} />
-            })}
-        </div>)
+      {props.errors.map(err_code => {
+        return <FormErrorItem key={err_code.id} err_code={err_code} />
+      })}
+    </div>)
   }
 
   return (
-        <div className='errorsWrap'>
-            {el_errors}
-        </div>
+    <div className='errorsWrap'>
+      {el_errors}
+    </div>
   )
 }

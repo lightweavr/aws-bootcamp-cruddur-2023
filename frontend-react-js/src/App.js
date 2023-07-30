@@ -12,7 +12,6 @@ import MessageGroupPage from './pages/MessageGroupPage'
 import MessageGroupNewPage from './pages/MessageGroupNewPage'
 import ConfirmationPage from './pages/ConfirmationPage'
 import ActivityShowPage from './pages/ActivityShowPage'
-import React from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import { Amplify } from 'aws-amplify'

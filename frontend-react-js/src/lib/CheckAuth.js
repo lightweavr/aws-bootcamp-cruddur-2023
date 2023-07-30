@@ -20,7 +20,7 @@ const checkAuth = async (setUser) => {
   // https://docs.amplify.aws/lib/auth/manageusers/q/platform/js/#retrieve-current-authenticated-user
   Auth.currentSession().then((cognito_session) => {
     if (
-      localStorage.getItem('access_token') !=
+      localStorage.getItem('access_token') !==
       cognito_session.getAccessToken().jwtToken
     ) {
       console.log('refreshing JWT', cognito_session.getAccessToken().jwtToken)

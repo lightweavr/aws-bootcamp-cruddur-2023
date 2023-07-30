@@ -7,7 +7,7 @@ export default function FormErrorItem (props) {
         return 'You are not authorized to perform this action'
       case 'generic_401':
         return 'You are not authenicated to perform this action'
-        // Replies
+      // Replies
       case 'cognito_user_id_blank':
         return 'The user was not provided'
       case 'activity_uuid_blank':
@@ -16,14 +16,12 @@ export default function FormErrorItem (props) {
         return 'The message cannot be blank'
       case 'message_exceed_max_chars_1024':
         return 'The message is too long, It should be less than 1024 characters'
-        // Users
+      // Users
       case 'message_group_uuid_blank':
         return 'The message group cannot be blank'
       case 'user_reciever_handle_blank':
         return 'You need to send a message to a valid user'
-      case 'user_reciever_handle_blank':
-        return 'You need to send a message to a valid user'
-        // Profile
+      // Profile
       case 'display_name_blank':
         return 'The display name cannot be blank'
       default:
@@ -34,8 +32,8 @@ export default function FormErrorItem (props) {
   }
 
   return (
-        <div className="errorItem">
-            {render_error()}
-        </div>
+    <div className="errorItem">
+      {render_error()}
+    </div>
   )
 }
