@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import './DesktopSidebar.css'
 import Search from '../components/Search'
 import TrendingSection from '../components/TrendingsSection'
